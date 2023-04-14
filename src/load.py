@@ -41,17 +41,17 @@ def mca(trange=['2014-01-01', '2014-01-02'],
 
     out_files = []
 
-    pathname = './Akebono_MCA_data/'
+    local_pathname = './Akebono_MCA_data/'
 
     try:
-        os.mkdir(pathname)
+        os.mkdir(local_pathname)
     except Exception as e:
         print(e)
         pass
 
     for remote_name in remote_names:
 
-        save_name = pathname + remote_name
+        save_name = local_pathname + remote_name
         save_name = save_name.replace(remote_name_prefix, '')
 
         if (os.path.isfile(save_name) == False):

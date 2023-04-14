@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import time
+import akebono
 
 start = time.time()
 
@@ -40,20 +41,16 @@ def count_mca_intensity(trange,
 
     for i in range(date_list.size-1):
         print(date_list[i])
-        load.mca([date_list[i], date_list[i+1]], del_invalid_data=postgap)
-        try:
-            load.orb([date_list[i], date_list[i+1]])
-        except Exception as e:
-            print(e)
-            continue
+        akebono.vlf_mca([date_list[i], date_list[i+1]], datatyep='pwr', del_invalid_data=postgap)
+        akebono.orb([date_list[i], date_list[i+1]])
 
         try:
-            tinterpol('akb_ILAT', interp_to='Emax_pwr', newname='ILAT')
+            tinterpol('akb_orb_inv', interp_to='akb_mca_Emax_pwr', newname='ILAT')
         except Exception as e:
             print('data lack in orbit data')
             print(e)
             continue
-        tinterpol('akb_MLAT', interp_to='Emax', newname='MLAT')
+        tinterpol('akb_orb_MLAT', interp_to='Emax', newname='MLAT')
         tinterpol('akb_MLT', interp_to='Emax', newname='MLT', method='nearest')
         tinterpol('akb_ALT', interp_to='Emax', newname='ALT')
 
@@ -114,9 +111,9 @@ def distribution_plot(channel: list,
     '''
     field = dict_list[0]['field']
     if field == 'electric':
-        save_dir = './plots/mca_intensity_distribution/Efield/'
+        save_dir = '../plots/mca_intensity_distribution/Efield/'
     elif field == 'magnetic':
-        save_dir = './plots/mca_intensity_distribution/Mfield/'
+        save_dir = '../plots/mca_intensity_distribution/Mfield/'
 
     title = field + ' field ' + '\n'
     plot_save_name = save_dir + 'mca_' + field + '_'
@@ -169,9 +166,9 @@ def distribution_plot(channel: list,
     plt.close()
 
 
-e_dict1, _ = count_mca_intensity(trange=['1989-3-1', '1994-1-1'])
-e_dict2, _ = count_mca_intensity(trange=['1998-1-1', '2004-1-1'])
-e_dict3, _ = count_mca_intensity(trange=['2011-1-1', '2014-1-1'])
+e_dict1, _ = count_mca_intensity(trange=['1989-3-1', '1989-4-1'])
+e_dict2, _ = count_mca_intensity(trange=['1998-3-1', '1998-4-1'])
+e_dict3, _ = count_mca_intensity(trange=['2011-3-1', '2011-4-1'])
 
 elapsed_time = time.time() - start
 print("elapsed_time:{:.3f}".format(elapsed_time) + "[sec]")
