@@ -56,7 +56,7 @@ def load(trange=['2012-10-01', '2012-10-02'],
     if instrument != 'mca':
         files = download(remote_file=remote_names, remote_path=CONFIG['remote_data_dir'], local_path=CONFIG['local_data_dir'], no_download=no_update)
     if instrument == 'mca':
-        local_path = CONFIG['local_data_dir']+'vlf/mca/'+trange[0][0:4]+'/'
+        local_path = CONFIG['local_data_dir']+'vlf/mca/h1/ave8s/'+trange[0][0:4]+'/'
         files = download_mca_files(remote_names, local_path)
 
     if files is not None:
@@ -85,7 +85,7 @@ def download_mca_files(remote_names, local_path):
     for remote_name in remote_names:
         # example
         # remote_name = 'https://akebono-vlf.db.kanazawa-u.ac.jp/permalink.php?keyword=ak_h1_mca_20121001_v02.cdf'
-        # local_name = 'mca/ak_h1_mca_20121001_v02.cdf'
+        # local_name = 'vlf/mca/h1/ave8s/ak_h1_mca_20121001_v02.cdf'
         local_name = local_path + remote_name.split('=')[-1]
         # If local_path does not exist, create it
         if not os.path.exists(local_path):

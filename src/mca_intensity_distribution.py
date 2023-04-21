@@ -1,4 +1,3 @@
-import load
 from pytplot import get_data
 from pyspedas import tinterpol
 import matplotlib.pyplot as plt
@@ -6,6 +5,7 @@ import numpy as np
 import pandas as pd
 import time
 import akebono
+import os
 
 start = time.time()
 
@@ -41,23 +41,27 @@ def count_mca_intensity(trange,
 
     for i in range(date_list.size-1):
         print(date_list[i])
-        akebono.vlf_mca([date_list[i], date_list[i+1]], datatyep='pwr', del_invalid_data=postgap)
-        akebono.orb([date_list[i], date_list[i+1]])
-
+        akebono.vlf_mca([date_list[i], date_list[i+1]], datatype='dB', del_invalid_data=postgap)
         try:
-            tinterpol('akb_orb_inv', interp_to='akb_mca_Emax_pwr', newname='ILAT')
+            akebono.orb([date_list[i], date_list[i+1]])
+        except Exception as e:
+            print('No orbit data')
+            print(e)
+            continue
+        try:
+            tinterpol('akb_orb_inv', interp_to='akb_mca_Emax', newname='ILAT')
         except Exception as e:
             print('data lack in orbit data')
             print(e)
             continue
-        tinterpol('akb_orb_MLAT', interp_to='Emax', newname='MLAT')
-        tinterpol('akb_MLT', interp_to='Emax', newname='MLT', method='nearest')
-        tinterpol('akb_ALT', interp_to='Emax', newname='ALT')
+        # tinterpol('akb_orb_MLAT', interp_to='akb_mca_Emax', newname='MLAT')
+        tinterpol('akb_orb_MLT', interp_to='akb_mca_Emax', newname='MLT', method='nearest')
+        tinterpol('akb_orb_ALT', interp_to='akb_mca_Emax', newname='ALT')
 
-        E_tvar = get_data('Emax')
+        E_tvar = get_data('akb_mca_Emax')
         E_array = E_tvar.y
         E_array_T = E_array.T
-        B_tvar = get_data('Bmax')
+        B_tvar = get_data('akb_mca_Bmax')
         B_array = B_tvar.y
         B_array_T = B_array.T
 
@@ -112,8 +116,15 @@ def distribution_plot(channel: list,
     field = dict_list[0]['field']
     if field == 'electric':
         save_dir = '../plots/mca_intensity_distribution/Efield/'
+        # if there is no directory, make it
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+
     elif field == 'magnetic':
         save_dir = '../plots/mca_intensity_distribution/Mfield/'
+        # if there is no directory, make it
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
 
     title = field + ' field ' + '\n'
     plot_save_name = save_dir + 'mca_' + field + '_'
@@ -154,23 +165,28 @@ def distribution_plot(channel: list,
         axs[i].set_xscale('log')
         if field == 'electric':
             axs[i].set_xlim(left=1e-12, right=1e2)
-        axs[i].set_ylabel(str(freq_array[ch])+' Hz \n Count')
+        axs[i].set_ylabel(str(freq_array[ch])+' Hz \n %')
         axs[i].legend()
         if i == len(channel) - 1:
             if field == 'electric':
                 axs[i].set_xlabel('mV/m/Hz^0.5')
             if field == 'magnetic':
                 axs[i].set_xlabel('pT/Hz^0.5')
+    plot_save_name = save_dir + 'mca_' + field + '_altitude_distribution_solarmax.png'
     plt.savefig(plot_save_name)
     plt.clf()
     plt.close()
 
 
-e_dict1, _ = count_mca_intensity(trange=['1989-3-1', '1989-4-1'])
-e_dict2, _ = count_mca_intensity(trange=['1998-3-1', '1998-4-1'])
-e_dict3, _ = count_mca_intensity(trange=['2011-3-1', '2011-4-1'])
+e_dict1, _ = count_mca_intensity(trange=['1989-3-6', '1993-1-1'], alt_range=[0, 1000])
+e_dict2, _ = count_mca_intensity(trange=['1989-3-6', '1993-1-1'], alt_range=[1000, 2000])
+e_dict3, _ = count_mca_intensity(trange=['1989-3-6', '1993-1-1'], alt_range=[2000, 3000])
+e_dict4, _ = count_mca_intensity(trange=['1989-3-6', '1993-1-1'], alt_range=[3000, 4000])
+e_dict5, _ = count_mca_intensity(trange=['1989-3-6', '1993-1-1'], alt_range=[4000, 5000])
+e_dict6, _ = count_mca_intensity(trange=['1989-3-6', '1993-1-1'], alt_range=[5000, 6000])
+# e_dict3, _ = count_mca_intensity(trange=['2011-3-1', '2011-4-1'])
 
 elapsed_time = time.time() - start
 print("elapsed_time:{:.3f}".format(elapsed_time) + "[sec]")
 
-distribution_plot(channel=[1, 5], dict_list=[e_dict1, e_dict2, e_dict3])
+distribution_plot(channel=[1, 3, 5], dict_list=[e_dict1, e_dict2, e_dict3, e_dict4, e_dict5, e_dict6])

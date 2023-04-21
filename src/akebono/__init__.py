@@ -1,7 +1,7 @@
 from .load import load
 import numpy as np
 import pandas as pd
-from pytplot import store_data, options, get_data
+from pytplot import store_data, options, get_data, tplot_names
 from pyspedas import time_double
 from pyspedas.cotrans.xyz_to_polar import xyz_to_polar
 
@@ -301,6 +301,7 @@ def orb_postprocessing(files):
     store_data(prefix + 'inv', data={'x': unix_times, 'y': np.float64(data['inv'])})
     store_data(prefix + 'fmlat', data={'x': unix_times, 'y': np.float64(data['fmlat'])})
     store_data(prefix + 'MLT', data={'x': unix_times, 'y': np.float64(data['mlt'])})
+    store_data(prefix + 'ALT', data={'x': unix_times, 'y': np.float64(data['aheight'])})
     store_data(prefix + 'gcalt', data={'x': unix_times, 'y': rr / km_in_re})
     store_data(prefix + 'gclat', data={'x': unix_times, 'y': th})
     store_data(prefix + 'gclon', data={'x': unix_times, 'y': ph})
@@ -316,6 +317,8 @@ def orb_postprocessing(files):
     options(prefix + 'fmlat', 'ysubtitle', '(120km altitude) [deg]')
     options(prefix + 'MLT', 'ytitle', 'Magnetic Local Time')
     options(prefix + 'MLT', 'ysubtitle', '[hours]')
+    options(prefix + 'ALT', 'ytitle', 'Altitude')
+    options(prefix + 'ALT', 'ysubtitle', '[km]')
     options(prefix + 'gcalt', 'ytitle', 'Geocentric Altitude')
     options(prefix + 'gcalt', 'ysubtitle', '[Re]')
     options(prefix + 'gclat', 'ytitle', 'Geocentric Latitude')
@@ -329,6 +332,7 @@ def orb_postprocessing(files):
             prefix + 'inv',
             prefix + 'fmlat',
             prefix + 'MLT',
+            prefix + 'ALT',
             prefix + 'gcalt',
             prefix + 'gclat',
             prefix + 'gclon']
@@ -430,7 +434,7 @@ def mca_postprocessing(datatype, del_invalid_data):
     else:
         Emax, Bmax, Eave, Bave = get_data(prefix+'Emax'), get_data(prefix+'Bmax'), get_data(prefix+'Eave'), get_data(prefix+'Bave')
         Emax_array, Bmax_array, Eave_array, Bave_array = Emax.y.astype(float), Bmax.y.astype(float), Eave.y.astype(float), Bave.y.astype(float)
-        postgap = get_data(prefix+'postgap')
+        postgap = get_data(prefix+'PostGap')
         postgap_arr = postgap.y.T
         postgap_bin_arr = np.array([list(np.binary_repr(x, width=8)) for x in postgap_arr], dtype=int)
         for inst_name in del_invalid_data:

@@ -1,6 +1,6 @@
 import os
 
-CONFIG = {'local_data_dir': '..akebono_data/',
+CONFIG = {'local_data_dir': '../akebono_data/',
           'remote_data_dir': 'http://darts.isas.jaxa.jp/stp/data/exosd/'}
 
 # override local data directory with environment variables
