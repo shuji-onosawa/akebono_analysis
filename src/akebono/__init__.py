@@ -539,12 +539,12 @@ def mca_h1cdf_dB_to_absolute(spec_type: str):
             # (mV/m)^2/Hz or pT^2/Hz
             store_data(tvar_names[i] + '_pwr',
                        data={'x': tvar.times, 'y': tvar_pwr, 'v': tvar.v})
-            if tvar_names[i] == 'Emax' or tvar_names[i] == 'Eave':
+            if tvar_names[i] == prefix + 'Emax' or tvar_names[i] == prefix + 'Eave':
                 opt_dict = {'spec': 1, 'ylog': 1, 'zlog': 1,
                             'yrange': [1, 2e4], 'ysubtitle': 'Frequency [Hz]',
                             'zrange': [1e-10, 1e2], 'ztitle': '$[(mV/m)^2/Hz]$'}
                 options(tvar_names[i] + '_pwr', opt_dict=opt_dict)
-            if tvar_names[i] == 'Bmax' or tvar_names[i] == 'Bave':
+            if tvar_names[i] == prefix + 'Bmax' or tvar_names[i] == prefix + 'Bave':
                 opt_dict = {'spec': 1, 'ylog': 1, 'zlog': 1,
                             'yrange': [1, 2e4], 'ysubtitle': 'Frecuency [Hz]',
                             'zrange': [1e-8, 1e6], 'ztitle': '$[pT^2/Hz]$'}
@@ -559,12 +559,12 @@ def mca_h1cdf_dB_to_absolute(spec_type: str):
             # mV/m/Hz^0.5 or pT/Hz^0.5
             store_data(tvar_names[i] + '_amp',
                        data={'x': tvar.times, 'y': tvar_amp, 'v': tvar.v})
-            if tvar_names[i] == 'Emax' or tvar_names[i] == 'Eave':
+            if tvar_names[i] == prefix + 'Emax' or tvar_names[i] == prefix + 'Eave':
                 opt_dict = {'spec': 1, 'ylog': 1, 'zlog': 1,
                             'yrange': [1, 2e4], 'ysubtitle': 'Frequency [Hz]',
                             'zrange': [1e-4, 10], 'ztitle': '$[mV/m/Hz^{0.5}]$'}
                 options(tvar_names[i] + '_amp', opt_dict=opt_dict)
-            if tvar_names[i] == 'Bmax' or tvar_names[i] == 'Bave':
+            if tvar_names[i] == prefix + 'Bmax' or tvar_names[i] == prefix + 'Bave':
                 opt_dict = {'spec': 1, 'ylog': 1, 'zlog': 1,
                             'yrange': [1, 2e4], 'ysubtitle': 'Frequency [Hz]',
                             'zrange': [1e-4, 1e3], 'ztitle': '$[pT/Hz^{0.5}]$'}
