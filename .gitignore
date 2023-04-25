@@ -3,3 +3,4 @@ omni_data/
 plots/
 execute/
 .venv
+.venv_test
