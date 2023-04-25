@@ -3,7 +3,8 @@
 import numpy as np
 
 
-def find_nearest(array, value):
-    array = np.asarray(array)
-    idx = (np.abs(array - value)).argmin()
+def get_idx_of_nearest_value(array, value):
+    array = np.array(array)
+    idx = np.nanargmin(np.abs(array - value))
+    # if array[i] - value = array[i+1] -value, return the index of the first value
     return idx

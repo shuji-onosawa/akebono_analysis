@@ -24,7 +24,7 @@ def get_next_date(date: str = '19900225'):
     return date.strftime('%Y%m%d')
 
 
-def store_high_time_res_data(date: str = '19900225'):
+def store_mgf_data(date: str = '19900225'):
     """
     高時間分解能のスペクトルデータをtplot変数にする
     Parameters
@@ -87,15 +87,8 @@ def store_high_time_res_data(date: str = '19900225'):
     pytplot.timebar(t=90, varname=['angle_btwn_B0_Ey', 'angle_btwn_B0_sBy'],
                     dash=True, databar=True)
 
+
+def store_mca_high_time_res_data(date: str = '19900225', datatype: str = 'pwr'):
     mca_cdf_name = '../akebono_data/vlf/mca/h1/ave0.5s/1990/ak_h1_mca_'+date+'_v02.cdf'
     pytplot.cdf_to_tplot(mca_cdf_name, prefix='akb_mca_')
-    akebono.mca_postprocessing(datatype='pwr', del_invalid_data=['off', 'sms'])
-
-    next_date = get_next_date(date)
-    akebono.orb(trange=[date[0:4]+'-'+date[4:6]+'-'+date[6:8],
-                        next_date[0:4]+'-'+next_date[4:6]+'-'+next_date[6:8]])
-
-    return pytplot.tplot_names()
-
-
-
+    akebono.mca_postprocessing(datatype=datatype, del_invalid_data=['off', 'sms'])
