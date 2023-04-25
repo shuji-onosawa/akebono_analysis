@@ -41,18 +41,29 @@ def get_next_date(date: str = '1970-1-1'):
 
 def get_data_in_angle_range(angle_ary, data_ary, angle_range: list):
     """
-    angle_aryの中でangle_rangeの範囲にあるdata_aryの値を返す
+    angle_aryの中でangle_rangeの範囲にあるdata_aryの値または配列を返す
     Parameters
     ----------
-    angle_ary : np.ndarray
-        角度の配列
-    data_ary : np.ndarray
-        角度に対応する値の配列
+    angle_ary : list or np.ndarray
+        角度の時刻変化を表す1次元配列
+    data_ary : list or np.ndarray
+        angle_aryに対応するデータの配列
     angle_range : list
         角度の範囲
     Returns
     -------
-    np.ndarray
-        angle_aryの中でangle_rangeの範囲にあるdata_aryの値
+    list
+        angle_aryの中でangle_rangeの範囲にある値
     """
-    return data_ary[np.logical_and(angle_ary >= angle_range[0], angle_ary < angle_range[1])]
+    # data_aryが1次元の場合、angle_aryとdata_aryの長さが一致していることを確認
+    if len(data_ary.shape) == 1:
+        assert len(angle_ary) == len(data_ary)
+    # data_aryが2次元の場合、angle_aryとdata_aryの長さが一致していることを確認
+    elif len(data_ary.shape) == 2:
+        assert len(angle_ary) == data_ary.shape[0]
+    angle_ary = np.array(angle_ary)
+    data_ary = np.array(data_ary)
+    idx = np.where((angle_ary >= angle_range[0]) & (angle_ary <= angle_range[1]))
+    if len(idx[0]) == 0:
+        return np.nan*np.empty(data_ary.shape)
+    return data_ary[idx[0]]

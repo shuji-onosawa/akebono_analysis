@@ -28,8 +28,7 @@ def store_mgf_data(date: str = '1990-2-25'):
 
     B0_epoch = mgf_xary['Epoch'].data
     B0_ary = mgf_xary['B0_spin'].data
-    print(B0_epoch[10])
-    print(datetime.datetime.utcfromtimestamp(B0_epoch[10]/1000))
+
     angle_btwn_B0_Ey = np.empty(int(B0_ary.shape[0]))
     angle_btwn_B0_sBy = np.empty(int(B0_ary.shape[0]))
     angle_btwn_B0_antenna_epoch = np.empty(int(B0_ary.shape[0]))
@@ -57,14 +56,14 @@ def store_mgf_data(date: str = '1990-2-25'):
     mgf_epoch_interp = interpolate_mgf_epoch(angle_btwn_B0_antenna_epoch)
 
     pytplot.store_data(name='angle_btwn_B0_Ey',
-                       data={'x': mgf_epoch_interp,
+                       data={'x': cdflib.cdfepoch.to_datetime(mgf_epoch_interp),
                              'y': angle_btwn_B0_Ey})
     pytplot.options(name='angle_btwn_B0_Ey',
                     opt_dict={'ytitle': 'angle between B0 and E1',
                               'yrange': [0, 180],
                               'line_style': 'dot'})
     pytplot.store_data(name='angle_btwn_B0_sBy',
-                       data={'x': mgf_epoch_interp,
+                       data={'x': cdflib.cdfepoch.to_datetime(mgf_epoch_interp),
                              'y': angle_btwn_B0_sBy})
     pytplot.options(name='angle_btwn_B0_sBy',
                     opt_dict={'ytitle': 'angle between B0 and B1',
