@@ -7,31 +7,16 @@ import akebono
 import datetime
 
 
-def get_next_date(date: str = '19900225'):
-    """
-    日付を次の日にする
-    Parameters
-    ----------
-    date : str, optional
-        日付, by default '19900225'
-    Returns
-    -------
-    str
-        次の日の日付
-    """
-    date = datetime.datetime.strptime(date, '%Y%m%d')
-    date += datetime.timedelta(days=1)
-    return date.strftime('%Y%m%d')
-
-
-def store_mgf_data(date: str = '19900225'):
+def store_mgf_data(date: str = '1990-2-25'):
     """
     高時間分解能のスペクトルデータをtplot変数にする
     Parameters
     ----------
     date : str, optional
-        日付, by default '19900225'
+        日付, by default '1990-2-25'
     """
+    # dateを'yyyymmdd'に変換する
+    date = datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')
 
     Ey_antenna_vector = np.array([-np.sin(np.deg2rad(35)),
                                   np.cos(np.deg2rad(35)),
@@ -43,7 +28,8 @@ def store_mgf_data(date: str = '19900225'):
 
     B0_epoch = mgf_xary['Epoch'].data
     B0_ary = mgf_xary['B0_spin'].data
-
+    print(B0_epoch[10])
+    print(datetime.datetime.utcfromtimestamp(B0_epoch[10]/1000))
     angle_btwn_B0_Ey = np.empty(int(B0_ary.shape[0]))
     angle_btwn_B0_sBy = np.empty(int(B0_ary.shape[0]))
     angle_btwn_B0_antenna_epoch = np.empty(int(B0_ary.shape[0]))
@@ -71,14 +57,14 @@ def store_mgf_data(date: str = '19900225'):
     mgf_epoch_interp = interpolate_mgf_epoch(angle_btwn_B0_antenna_epoch)
 
     pytplot.store_data(name='angle_btwn_B0_Ey',
-                       data={'x': cdflib.cdfepoch.to_datetime(mgf_epoch_interp),
+                       data={'x': mgf_epoch_interp,
                              'y': angle_btwn_B0_Ey})
     pytplot.options(name='angle_btwn_B0_Ey',
                     opt_dict={'ytitle': 'angle between B0 and E1',
                               'yrange': [0, 180],
                               'line_style': 'dot'})
     pytplot.store_data(name='angle_btwn_B0_sBy',
-                       data={'x': cdflib.cdfepoch.to_datetime(mgf_epoch_interp),
+                       data={'x': mgf_epoch_interp,
                              'y': angle_btwn_B0_sBy})
     pytplot.options(name='angle_btwn_B0_sBy',
                     opt_dict={'ytitle': 'angle between B0 and B1',
@@ -88,7 +74,19 @@ def store_mgf_data(date: str = '19900225'):
                     dash=True, databar=True)
 
 
-def store_mca_high_time_res_data(date: str = '19900225', datatype: str = 'pwr'):
+def store_mca_high_time_res_data(date: str = '1990-02-25', datatype: str = 'pwr'):
+    """
+    高時間分解能のスペクトルデータをtplot変数にする
+    Parameters
+    ----------
+    date : str, optional
+
+    datatype : str, optional
+        データタイプ, by default 'pwr'
+    """
+    # dateを'yyyymmdd'に変換する
+    date = datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')
+
     mca_cdf_name = '../akebono_data/vlf/mca/h1/ave0.5s/1990/ak_h1_mca_'+date+'_v02.cdf'
     pytplot.cdf_to_tplot(mca_cdf_name, prefix='akb_mca_')
     akebono.mca_postprocessing(datatype=datatype, del_invalid_data=['off', 'sms'])
