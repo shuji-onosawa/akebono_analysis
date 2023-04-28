@@ -7,10 +7,10 @@ from pyspedas.cotrans.xyz_to_polar import xyz_to_polar
 
 
 def pws(trange=['2012-10-01', '2012-10-02'],
-        datatype='ne', 
-        level='h1', 
-        suffix='',  
-        get_support_data=False, 
+        datatype='ne',
+        level='h1',
+        suffix='',
+        get_support_data=False,
         varformat=None,
         varnames=[],
         downloadonly=False,
@@ -19,12 +19,12 @@ def pws(trange=['2012-10-01', '2012-10-02'],
         time_clip=False):
     """
     This function loads data from the Plasma Waves and Sounder experiment (PWS)
-    
+
     Parameters
     ----------
         trange : list of str
-            time range of interest [starttime, endtime] with the format 
-            'YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day 
+            time range of interest [starttime, endtime] with the format
+            'YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day
             ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']
 
         datatype: str
@@ -35,12 +35,12 @@ def pws(trange=['2012-10-01', '2012-10-02'],
             Data level; options: 'h1' (default: h1)
 
         suffix: str
-            The tplot variable names will be given this suffix.  By default, 
+            The tplot variable names will be given this suffix.  By default,
             no suffix is added.
 
         get_support_data: bool
             Data with an attribute "VAR_TYPE" with a value of "support_data"
-            will be loaded into tplot.  By default, only loads in data with a 
+            will be loaded into tplot.  By default, only loads in data with a
             "VAR_TYPE" attribute of "data".
 
         varformat: str
@@ -52,7 +52,7 @@ def pws(trange=['2012-10-01', '2012-10-02'],
             all data variables are loaded)
 
         downloadonly: bool
-            Set this flag to download the CDF files, but not load them into 
+            Set this flag to download the CDF files, but not load them into
             tplot variables
 
         notplot: bool
@@ -79,14 +79,14 @@ def pws(trange=['2012-10-01', '2012-10-02'],
 
 def pws_postprocessing(variables):
     """
-    Placeholder for PWS post-processing 
+    Placeholder for PWS post-processing
     """
     return variables
 
 
 def rdm(trange=['2012-10-01', '2012-10-02'],
-        suffix='',  
-        get_support_data=False, 
+        suffix='',
+        get_support_data=False,
         varformat=None,
         varnames=[],
         downloadonly=False,
@@ -95,21 +95,21 @@ def rdm(trange=['2012-10-01', '2012-10-02'],
         time_clip=False):
     """
     This function loads data from the Radiation Moniter (RDM)
-    
+
     Parameters
     ----------
         trange : list of str
-            time range of interest [starttime, endtime] with the format 
-            'YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day 
+            time range of interest [starttime, endtime] with the format
+            'YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day
             ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']
 
         suffix: str
-            The tplot variable names will be given this suffix.  By default, 
+            The tplot variable names will be given this suffix.  By default,
             no suffix is added.
 
         get_support_data: bool
             Data with an attribute "VAR_TYPE" with a value of "support_data"
-            will be loaded into tplot.  By default, only loads in data with a 
+            will be loaded into tplot.  By default, only loads in data with a
             "VAR_TYPE" attribute of "data".
 
         varformat: str
@@ -121,7 +121,7 @@ def rdm(trange=['2012-10-01', '2012-10-02'],
             all data variables are loaded)
 
         downloadonly: bool
-            Set this flag to download the CDF files, but not load them into 
+            Set this flag to download the CDF files, but not load them into
             tplot variables
 
         notplot: bool
@@ -208,8 +208,8 @@ def rdm_postprocessing(files):
 
 
 def orb(trange=['2012-10-01', '2012-10-02'],
-        suffix='',  
-        get_support_data=False, 
+        suffix='',
+        get_support_data=False,
         varformat=None,
         varnames=[],
         downloadonly=False,
@@ -218,21 +218,21 @@ def orb(trange=['2012-10-01', '2012-10-02'],
         time_clip=False):
     """
     This function loads data from the Akebono orbit data (orb)
-    
+
     Parameters
     ----------
         trange : list of str
-            time range of interest [starttime, endtime] with the format 
-            'YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day 
+            time range of interest [starttime, endtime] with the format
+            'YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day
             ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']
 
         suffix: str
-            The tplot variable names will be given this suffix.  By default, 
+            The tplot variable names will be given this suffix.  By default,
             no suffix is added.
 
         get_support_data: bool
             Data with an attribute "VAR_TYPE" with a value of "support_data"
-            will be loaded into tplot.  By default, only loads in data with a 
+            will be loaded into tplot.  By default, only loads in data with a
             "VAR_TYPE" attribute of "data".
 
         varformat: str
@@ -244,7 +244,7 @@ def orb(trange=['2012-10-01', '2012-10-02'],
             all data variables are loaded)
 
         downloadonly: bool
-            Set this flag to download the CDF files, but not load them into 
+            Set this flag to download the CDF files, but not load them into
             tplot variables
 
         notplot: bool
@@ -295,6 +295,9 @@ def orb_postprocessing(files):
     rr = r_theta_phi[:, 0]
     th = r_theta_phi[:, 1]
     ph = r_theta_phi[:, 2]
+    bmdl = np.array([[data['bmdl_x']], [data['bmdl_y']], [data['bmdl_z']]]).transpose([2, 0, 1]).squeeze()
+    bmdl = np.float64(bmdl)
+    bmdl_scaler = np.sqrt(np.sum(bmdl**2, axis=1))
     store_data(prefix + 'geo', data={'x': unix_times, 'y': xyz_re})
     store_data(prefix + 'gdlat', data={'x': unix_times, 'y': np.float64(data['gclat'])})
     store_data(prefix + 'gdlon', data={'x': unix_times, 'y': np.float64(data['gclon'])})
@@ -305,6 +308,7 @@ def orb_postprocessing(files):
     store_data(prefix + 'gcalt', data={'x': unix_times, 'y': rr / km_in_re})
     store_data(prefix + 'gclat', data={'x': unix_times, 'y': th})
     store_data(prefix + 'gclon', data={'x': unix_times, 'y': ph})
+    store_data(prefix + 'bmdl_scaler', data={'x': unix_times, 'y': bmdl_scaler})
     options(prefix + 'geo', 'ytitle', 'GEO')
     options(prefix + 'geo', 'ysubtitle', '[Re]')
     options(prefix + 'gdlat', 'ytitle', 'Geodetic latitude of the magnetic footprint')
@@ -337,7 +341,7 @@ def orb_postprocessing(files):
             prefix + 'gclat',
             prefix + 'gclon']
 
-        
+
 def load_csv_file(filenames, cols=None):
     """
     Loads a list of CSV/txt files into pandas data frames
@@ -361,12 +365,12 @@ def vlf_mca(trange=['2012-10-01', '2012-10-02'],
             time_clip=False):
     """
     This function loads data from the Plasma Waves and Sounder experiment (PWS)
-    
+
     Parameters
     ----------
         trange : list of str
-            time range of interest [starttime, endtime] with the format 
-            'YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day 
+            time range of interest [starttime, endtime] with the format
+            'YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day
             ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']
 
         datatype: str
@@ -423,7 +427,7 @@ def vlf_mca(trange=['2012-10-01', '2012-10-02'],
 
     if tvars is None or notplot or downloadonly:
         return tvars
-    
+
     return mca_postprocessing(datatype, del_invalid_data)
 
 
