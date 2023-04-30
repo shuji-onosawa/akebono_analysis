@@ -24,12 +24,6 @@ $$ \hat{\boldsymbol{B_0}} = \frac{\boldsymbol{B_{MGF}}}{\boldsymbol{|B_{MGF}|}} 
 \end{align}
 ```
 The correct method is to use arctan2 function.
-```math
-\begin{align}
-\theta_{E} &= \arccos(\hat{\boldsymbol{B_0}} \cdot \hat{\boldsymbol{u_{Esensor}}}) \\
-\theta_{B} &= \arccos(\hat{\boldsymbol{B_0}} \cdot \hat{\boldsymbol{u_{Msensor}}})
-\end{align}
-```
 The following method is correct.
 ```math
 \begin{align}
@@ -41,5 +35,19 @@ The following method is correct.
 \begin{align}
 \hat{\boldsymbol{B_0}} \times \hat{\boldsymbol{u_{Esensor}}} &= (cos(\theta_{E}), sin(\theta_{E}), 0) \\
 \hat{\boldsymbol{B_0}} \times \hat{\boldsymbol{u_{Msensor}}} &= (0, 0, 1)
+\end{align}
+```
+The definition of arctan2 is
+```math
+\begin{align}
+\arctan2(y, x) &= \arctan(y/x) \\
+&= \begin{cases}
+\arctan(y/x) & x > 0 \\
+\arctan(y/x) + \pi & x < 0, y \geq 0 \\
+\arctan(y/x) - \pi & x < 0, y < 0 \\
+\frac{\pi}{2} & x = 0, y > 0 \\
+-\frac{\pi}{2} & x = 0, y < 0 \\
+\text{undefined} & x = 0, y = 0
+\end{cases}
 \end{align}
 ```
