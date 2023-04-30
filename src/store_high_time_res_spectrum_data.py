@@ -1,6 +1,6 @@
 import pytplot
 import numpy as np
-from get_antenna_angle import unit_vector, angle_between_vectors
+from calc_antenna_angle import calc_angle_btwn_vectors
 from interpolate_mgf_epoch import interpolate_mgf_epoch
 import cdflib
 import akebono
@@ -32,7 +32,7 @@ def store_mgf_data(date: str = '1990-2-25'):
     angle_btwn_B0_Ey = np.empty(int(B0_ary.shape[0]))
     angle_btwn_B0_sBy = np.empty(int(B0_ary.shape[0]))
     angle_btwn_B0_antenna_epoch = np.empty(int(B0_ary.shape[0]))
-
+    # 背景磁場とアンテナの角度を計算する
     for i in range(int(B0_ary.shape[0])):
 
         if B0_epoch[i] == 0.0:
@@ -49,10 +49,9 @@ def store_mgf_data(date: str = '1990-2-25'):
                                   np.average(B0_ary[i][1]),
                                   np.average(B0_ary[i][2])])
 
-            B0_unit_vector = unit_vector(B0_vector)
-            angle_btwn_B0_Ey[i] = angle_between_vectors(B0_unit_vector, Ey_antenna_vector)
-            angle_btwn_B0_sBy[i] = angle_between_vectors(B0_unit_vector, sBy_antenna_vector)
-
+            angle_btwn_B0_Ey[i] = calc_angle_btwn_vectors(B0_vector, Ey_antenna_vector)
+            angle_btwn_B0_sBy[i] = calc_angle_btwn_vectors(B0_vector, sBy_antenna_vector)
+    # epochを補間する
     mgf_epoch_interp = interpolate_mgf_epoch(angle_btwn_B0_antenna_epoch)
 
     pytplot.store_data(name='angle_btwn_B0_Ey',
@@ -60,15 +59,13 @@ def store_mgf_data(date: str = '1990-2-25'):
                              'y': angle_btwn_B0_Ey})
     pytplot.options(name='angle_btwn_B0_Ey',
                     opt_dict={'ytitle': 'angle between B0 and E1',
-                              'yrange': [0, 180],
-                              'line_style': 'dot'})
+                              'yrange': [-180, 180]})
     pytplot.store_data(name='angle_btwn_B0_sBy',
                        data={'x': cdflib.cdfepoch.to_datetime(mgf_epoch_interp),
                              'y': angle_btwn_B0_sBy})
     pytplot.options(name='angle_btwn_B0_sBy',
                     opt_dict={'ytitle': 'angle between B0 and B1',
-                              'yrange': [0, 180],
-                              'line_style': 'dot'})
+                              'yrange': [-180, 180]})
     pytplot.timebar(t=90, varname=['angle_btwn_B0_Ey', 'angle_btwn_B0_sBy'],
                     dash=True, databar=True)
 
