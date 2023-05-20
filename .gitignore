@@ -4,3 +4,4 @@ plots/
 execute/
 .venv
 .venv_test
+.python-version
