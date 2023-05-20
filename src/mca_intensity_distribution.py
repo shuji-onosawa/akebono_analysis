@@ -6,6 +6,7 @@ import pandas as pd
 import time
 import akebono
 import os
+import datetime
 
 start = time.time()
 
@@ -26,7 +27,8 @@ def convert_dB_to_pwr(dB, center_freq):
 def count_mca_intensity(trange,
                         postgap=['off', 'noisy', 'bdr', 'sms', 'bit rate m', 'pws'],
                         alt_range=[0, 12000],
-                        mlt_range=[10, 14]):
+                        mlt_range=[10, 14],
+                        ilat_range=[60, 90]):
     start_date, end_date = trange[0], trange[1]
     date_list = get_date_list(start_date, end_date)
 
@@ -77,14 +79,16 @@ def count_mca_intensity(trange,
             for intensity in intensity_array:
                 E_matrix_per_day[ch][intensity] = \
                     np.count_nonzero((E_array_T[ch] == intensity) &
-                                     (ilat.y >= 60) &
+                                     (ilat.y >= ilat_range[0]) &
+                                     (ilat.y <= ilat_range[1]) &
                                      (mlt_range[0] <= mlt.y) &
                                      (mlt.y <= mlt_range[1]) &
                                      (alt_range[0] <= alt.y) &
                                      (alt.y <= alt_range[1]))
                 B_matrix_per_day[ch][intensity] = \
                     np.count_nonzero((B_array_T[ch] == intensity) &
-                                     (ilat.y >= 60) &
+                                     (ilat.y >= ilat_range[0]) &
+                                     (ilat.y <= ilat_range[1]) &
                                      (mlt_range[0] <= mlt.y) &
                                      (mlt.y <= mlt_range[1]) &
                                      (alt.y >= alt_range[0]) &
@@ -97,12 +101,14 @@ def count_mca_intensity(trange,
               'matrix': E_matrix,
               'trange': trange,
               'alt_range': alt_range,
-              'mlt_range': mlt_range}
-    M_dict = {'field': 'electric',
-              'matrix': E_matrix,
+              'mlt_range': mlt_range,
+              'ilat_range': ilat_range}
+    M_dict = {'field': 'magnetic',
+              'matrix': B_matrix,
               'trange': trange,
               'alt_range': alt_range,
-              'mlt_range': mlt_range}
+              'mlt_range': mlt_range,
+              'ilat_range': ilat_range}
 
     return E_dict, M_dict
 
@@ -112,7 +118,9 @@ def distribution_plot(channel: list,
     '''
     channel: 0: 3.16, 1: 5.62, 2: 10.0, 3: 17.8, 4: 31.6, 5: 56.2, 6: 100, 7: 178, 8: 316, 9: 562, 10: 1000,
             11: 1780, 12: 3160, 13: 5620, 14: 10000, 15: 17800 unit Hz
+    dict_list: list of dictionary
     '''
+    # check the field
     field = dict_list[0]['field']
     if field == 'electric':
         save_dir = '../plots/mca_intensity_distribution/Efield/'
@@ -131,9 +139,11 @@ def distribution_plot(channel: list,
 
     for k in range(len(dict_list)):
         trange = dict_list[k]['trange']
+        # trangeはlist型、長さ2。trange[1]の日付を1日前の日付にする
+        trange[1] = (datetime.datetime.strptime(trange[1], '%Y-%m-%d') - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
         alt_range = dict_list[k]['alt_range']
         mlt_range = dict_list[k]['mlt_range']
-
+        
         title += trange[0]+'_'+trange[1]+'_' +\
             'alt'+str(alt_range[0])+'_'+str(alt_range[1]) +\
             'mlt'+str(mlt_range[0])+'_'+str(mlt_range[1]) + '\n'
@@ -153,7 +163,7 @@ def distribution_plot(channel: list,
         pwr_ary[ch] = convert_dB_to_pwr(intensity_array, freq_array[ch])
 
     fig, axs = plt.subplots(nrows=len(channel), ncols=1,
-                            figsize=(10, 2+3*len(channel)))
+                            figsize=(10, 2+4*len(channel)))
     fig.suptitle(title)
     for i, ch in zip(range(len(channel)), channel):
         for j in range(len(dict_list)):
@@ -162,6 +172,7 @@ def distribution_plot(channel: list,
                         label=dict_list[j]['trange'],
                         marker='.')
         axs[i].set_yscale('log')
+        axs[i].set_ylim(bottom=1e-4, top=1e-1)
         axs[i].set_xscale('log')
         if field == 'electric':
             axs[i].set_xlim(left=1e-12, right=1e2)
@@ -172,19 +183,21 @@ def distribution_plot(channel: list,
                 axs[i].set_xlabel('mV/m/Hz^0.5')
             if field == 'magnetic':
                 axs[i].set_xlabel('pT/Hz^0.5')
-    plot_save_name = save_dir + 'mca_' + field + '_altitude_distribution_solarmax.png'
+    plot_save_name = save_dir + 'mca_' + field + '_pwr_dist_solarmin_per_alt.png'
     plt.savefig(plot_save_name)
     plt.clf()
     plt.close()
 
+date_range = ['1993-1-1', '1998-1-1']
+mlt_range = [11, 13]
+ilat_range = [77, 79]
 
-e_dict1, _ = count_mca_intensity(trange=['1989-3-6', '1993-1-1'], alt_range=[0, 1000])
-e_dict2, _ = count_mca_intensity(trange=['1989-3-6', '1993-1-1'], alt_range=[1000, 2000])
-e_dict3, _ = count_mca_intensity(trange=['1989-3-6', '1993-1-1'], alt_range=[2000, 3000])
-e_dict4, _ = count_mca_intensity(trange=['1989-3-6', '1993-1-1'], alt_range=[3000, 4000])
-e_dict5, _ = count_mca_intensity(trange=['1989-3-6', '1993-1-1'], alt_range=[4000, 5000])
-e_dict6, _ = count_mca_intensity(trange=['1989-3-6', '1993-1-1'], alt_range=[5000, 6000])
-# e_dict3, _ = count_mca_intensity(trange=['2011-3-1', '2011-4-1'])
+e_dict1, _ = count_mca_intensity(trange=date_range, alt_range=[0, 1000], mlt_range=mlt_range, ilat_range=ilat_range)
+e_dict2, _ = count_mca_intensity(trange=date_range, alt_range=[1000, 2000], mlt_range=mlt_range, ilat_range=ilat_range)
+e_dict3, _ = count_mca_intensity(trange=date_range, alt_range=[2000, 3000], mlt_range=mlt_range, ilat_range=ilat_range)
+e_dict4, _ = count_mca_intensity(trange=date_range, alt_range=[3000, 4000], mlt_range=mlt_range, ilat_range=ilat_range)
+e_dict5, _ = count_mca_intensity(trange=date_range, alt_range=[4000, 5000], mlt_range=mlt_range, ilat_range=ilat_range)
+e_dict6, _ = count_mca_intensity(trange=date_range, alt_range=[5000, 6000], mlt_range=mlt_range, ilat_range=ilat_range)
 
 elapsed_time = time.time() - start
 print("elapsed_time:{:.3f}".format(elapsed_time) + "[sec]")
