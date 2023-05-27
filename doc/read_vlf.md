@@ -10,7 +10,7 @@ ELF, waveformデータは非公開で
     - データの構造（笠原先生のコメント抜粋）  
     中に4種類の変数が入っていて、E, B, By, Bz そのうち E, Bは周波数方向に128個あって、残りのBy, Bzは64個
 
-    - Wide mode, Narrow modeの2種類があり、Wide modeではE,Bが各1成分で上限が100Hz, Narrow modeはEが1成分とBが3成分あって上限が 50Hz. Wideモードでは、E,Bだけに値を入れ（By,BzはEmpty)、Narrow モードは、変数E,Bの下半分（64個）と変数By, Bzに各64個づつ値が入っている。
+    - Wide mode, Narrow modeの2種類があり、Wide modeではE,Bが各1成分で上限が100Hz, Narrow modeはEが1成分とBが3成分あって上限が 50Hz. Wideモードでは、E,Bxだけに値を入れ（By,BzはEmpty)、Narrow モードは、変数E,Bの下半分（64個）と変数By, Bzに各64個づつ値が入っている。
 
     - 周波数分解能は、Wide/Narrow共に0.8sに1回FFT（Wideは256点FFT,　Narrowは128点FFT）をしており、Δf=1.25Hzとなっています。
         - で、今気づいたのですが、Frequencyの変数に記載の値がちょっとずれているようで、1.25Hzの整数倍とすべきところ、始点が 1Hz になっていて、そこから1.25Hz 刻みになっているようです。。すみません。
