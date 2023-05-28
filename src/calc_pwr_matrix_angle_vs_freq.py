@@ -1,52 +1,65 @@
 import pytplot
-from store_high_time_res_spectrum_data import store_mca_high_time_res_data, store_mgf_data
+from store_high_time_res_spectrum_data import store_mca_high_time_res_data, get_mgf_with_angle_xry
 import pyspedas
 import numpy as np
 from utilities import get_idx_of_nearest_value, get_data_in_angle_range
+import xarray as xr
+
+
+def make_wave_mgf_dataset(date: str,
+                          mca_datatype: str):
+    # Datasetの作成
+    # 欠損値をnanに置き換えた、B0とアンテナ間の角度を含むMGFデータのxarrayを取得する
+    mgf_with_angle_dataset = get_mgf_with_angle_xry(date=date)
+    mgf_epoch = mgf_with_angle_dataset['Epoch'].values
+
+    # MCAのデータをtplot変数にする
+    store_mca_high_time_res_data(date=date, datatype=mca_datatype)
+    # MCAのデータを取り出す
+    mca_Emax_tvar = pytplot.get_data('akb_mca_Emax_'+mca_datatype)
+    mca_Bmax_tvar = pytplot.get_data('akb_mca_Bmax_'+mca_datatype)
+    mca_epoch = mca_Emax_tvar.times
+    mca_Emax_data = mca_Emax_tvar.y
+    mca_Bmax_data = mca_Bmax_tvar.y
+    
+    if len(mca_epoch) == len(mgf_epoch):
+        pass
+    # MGFのepoch(ndarray)の長さにMCAのepoch(ndarray)の長さを合わせる
+    # MCAのepochの長さがMGFのepochの長さより長い場合は、MGFのepochの長さに合わせる
+    elif len(mca_epoch) > len(mgf_epoch):
+        mca_epoch = mca_epoch[:len(mgf_epoch)]
+        mca_Emax_data = mca_Emax_data[:len(mgf_epoch)]
+        mca_Bmax_data = mca_Bmax_data[:len(mgf_epoch)]
+    # MCAのepochの長さがMGFのepochの長さより短い場合は、MGFのepochの長さに合わせるために末尾にnanを追加する
+    elif len(mca_epoch) < len(mgf_epoch):
+        print(len(mca_epoch), len(mgf_epoch))
+        mca_epoch = np.append(mca_epoch, np.full(len(mgf_epoch)-len(mca_epoch), np.nan))
+        mca_Emax_data = np.append(mca_Emax_data, np.full(len(mgf_epoch)-len(mca_epoch), np.nan))
+        mca_Bmax_data = np.append(mca_Bmax_data, np.full((len(mgf_epoch)-len(mca_epoch), 3), np.nan))
+    # MCAのepoch配列をcoodinateにして、MCAのdatasetを作成する
+    coords = {'Epoch': mgf_epoch, 'channel': mca_Emax_tvar.v}
+    mca_Emax_da = xr.DataArray(mca_Emax_data, coords=coords, dims=('Epoch', 'channel'))
+    mca_Bmax_da = xr.DataArray(mca_Bmax_data, coords=coords, dims=('Epoch', 'channel'))
+    # MCAのepoch配列をcoodinateにして、MGFのdatasetを作成する
+    mgf_with_angle_dataset['akb_mca_Emax_pwr'] = mca_Emax_da
+    mgf_with_angle_dataset['akb_mca_Bmax_pwr'] = mca_Bmax_da
+    wave_mgf_dataset = mgf_with_angle_dataset
+    return wave_mgf_dataset
 
 
 def calc_pwr_matrix_angle_vs_freq(date: str = '1990-02-11',
                                   start_time: str = '18:05:10',
                                   end_time: str = '18:09:00',
                                   mca_datatype: str = 'pwr'):
-    # データを取得する
-    # MGFのデータをtplot変数にする
-    store_mgf_data(date=date)
+    wave_mgf_dataset = make_wave_mgf_dataset(date=date, mca_datatype=mca_datatype)
+    # datasetからstart_time_epochとend_time_epochの間のsubsetを作成する
+    start_time_epoch = np.datetime64(date+'T'+start_time)
+    end_time_epoch = np.datetime64(date+'T'+end_time)
+    sub_wave_mgf_dataset = wave_mgf_dataset.sel(Epoch=slice(start_time_epoch, end_time_epoch))
 
-    # MCAのデータをtplot変数にする
-    store_mca_high_time_res_data(date=date, datatype=mca_datatype)
+    return sub_wave_mgf_dataset
 
-    # データを切り出す
-    # start_time, end_timeをepochに変換する
-    star_time_epoch = pyspedas.time_double(date+' '+start_time)
-    end_time_epoch = pyspedas.time_double(date+' '+end_time)
-
-    # MCAのepoch配列とMGFのepoch配列を取得する
-    mgf_B0_Ey = pytplot.get_data('angle_btwn_B0_Ey')
-    mgf_B0_sBy = pytplot.get_data('angle_btwn_B0_sBy')
-    mca_Emax_pwr = pytplot.get_data('akb_mca_Emax_'+mca_datatype)
-    mca_Bmax_pwr = pytplot.get_data('akb_mca_Bmax_'+mca_datatype)
-    epoch_mgf_B0_Ey = mgf_B0_Ey.times
-    epoch_mca_Emax_pwr = mca_Emax_pwr.times
-
-    # MCAのepoch配列とMGFのepoch配列を比較して、start_time_epochとend_time_epochの間のデータを取得する
-    # MCAのepoch配列の長さとMGFのepoch配列の長さを確認する
-    # 長さが違う場合は長いほうの配列の後ろを切って短くして、長さが同じになるようにする
-    if len(epoch_mca_Emax_pwr) != len(epoch_mgf_B0_Ey):
-        if len(epoch_mca_Emax_pwr) > len(epoch_mgf_B0_Ey):
-            epoch_mca_Emax_pwr = epoch_mca_Emax_pwr[:len(epoch_mgf_B0_Ey)]
-        else:
-            epoch_mgf_B0_Ey = epoch_mgf_B0_Ey[:len(epoch_mca_Emax_pwr)]
-    # MCAのepoch配列とMGFのepoch配列の差が-250~250であることを確認する
-    if not np.all(np.logical_and(epoch_mca_Emax_pwr - epoch_mgf_B0_Ey >= -250,
-                                 epoch_mca_Emax_pwr - epoch_mgf_B0_Ey <= 250)):
-        raise ValueError('epoch_mca_Emax_pwr - epoch_mgf_B0_Ey is not in the range of -250 to 250.')
-    # MCAのepoch配列からstart_time_epochとend_time_epochの間のデータを取得する
-    idx_start_time_epoch = get_idx_of_nearest_value(epoch_mca_Emax_pwr, star_time_epoch)
-    idx_end_time_epoch = get_idx_of_nearest_value(epoch_mca_Emax_pwr, end_time_epoch)
-
-    # データを切り出す
-    mca_Emax_pwr = mca_Emax_pwr.y[idx_start_time_epoch:idx_end_time_epoch]
+    '''    mca_Emax_pwr = mca_Emax_pwr.y[idx_start_time_epoch:idx_end_time_epoch]
     mca_Bmax_pwr = mca_Bmax_pwr.y[idx_start_time_epoch:idx_end_time_epoch]
     mgf_B0_Ey = mgf_B0_Ey.y[idx_start_time_epoch:idx_end_time_epoch]
     mgf_B0_sBy = mgf_B0_sBy.y[idx_start_time_epoch:idx_end_time_epoch]
@@ -100,3 +113,4 @@ def calc_pwr_matrix_angle_vs_freq(date: str = '1990-02-11',
                 get_data_in_angle_range(mgf_B0_sBy, new_mca_Bmax_pwr, [157.5, 180])]
 
     return e_matrix, m_matrix
+    '''
