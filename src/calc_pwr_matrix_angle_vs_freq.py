@@ -70,7 +70,7 @@ def calc_pwr_matrix_angle_vs_freq(dataset: xr.Dataset,
                     (dataset[angle_name] < angle_list[i+1])
         dataset_in_angle_range = dataset.where(condition, drop=True)
         if dataset_in_angle_range[angle_name].size == 0:
-            mean_pwr_matrix[i, :] = np.nan
+            mean_pwr_matrix[i, :] = 0
         else:
             mean_pwr_matrix[i] = dataset_in_angle_range[data_name].mean(dim='Epoch')
     return mean_pwr_matrix
