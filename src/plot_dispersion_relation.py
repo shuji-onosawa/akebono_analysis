@@ -5,7 +5,7 @@ import calc_dispersion_in_cold_plasma as calc_dr
 
 theta = 90
 omega_s = pp.wlh
-freq = np.abs(omega_s['value'])*np.logspace(-4, 1, 100)
+freq = np.abs(omega_s['value'])*np.logspace(-4, 1, 1000)
 
 n_L, n_R, S, D, P = calc_dr.calc_dispersion_relation(freq, theta)
 # idx = calc_dr.get_crossover_freq_idx(D, theta)
@@ -27,6 +27,7 @@ axs.set_xlabel(r'$\omega/$'+omega_s['label'])
 axs.set_ylabel(r'$Refraction index ^2$')
 
 plt.legend()
+plt.savefig('../plots/dispersion_relation/refraction_index_wna_'+str(theta)+'.png')
 plt.show()
 
 fig, axs = plt.subplots(nrows=1, ncols=1, figsize=[16, 8])

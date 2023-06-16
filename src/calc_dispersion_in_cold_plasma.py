@@ -54,23 +54,42 @@ def calc_dispersion_relation(w, theta):
     n_plus = (B + F)/(2*A)
     n_minus = (B - F)/(2*A)
 
-    n_L = np.nan*np.arange(w.size)
-    n_R = np.nan*np.arange(w.size)
+    # if w is array, n_L and n_R are array, too.
+    if type(w) == np.ndarray:
+        n_L = np.nan*np.arange(w.size)
+        n_R = np.nan*np.arange(w.size)
 
-    polarization_plus = - D / (S - n_plus)
-    polarization_minus = - D / (S - n_minus)
+        polarization_plus = - D / (S - n_plus)
+        polarization_minus = - D / (S - n_minus)
 
-    L_mode_plus_idx = np.where(polarization_plus < 0)
-    L_mode_minus_idx = np.where(polarization_minus < 0)
-    R_mode_plus_idx = np.where(polarization_plus > 0)
-    R_mode_minus_idx = np.where(polarization_minus > 0)
+        L_mode_plus_idx = np.where(polarization_plus < 0)
+        L_mode_minus_idx = np.where(polarization_minus < 0)
+        R_mode_plus_idx = np.where(polarization_plus > 0)
+        R_mode_minus_idx = np.where(polarization_minus > 0)
 
-    n_L[L_mode_plus_idx[0]], n_L[L_mode_minus_idx[0]] = \
-        n_plus[L_mode_plus_idx[0]], n_minus[L_mode_minus_idx[0]]
-    n_R[R_mode_plus_idx[0]], n_R[R_mode_minus_idx[0]] = \
-        n_plus[R_mode_plus_idx[0]], n_minus[R_mode_minus_idx[0]]
+        n_L[L_mode_plus_idx[0]], n_L[L_mode_minus_idx[0]] = \
+            n_plus[L_mode_plus_idx[0]], n_minus[L_mode_minus_idx[0]]
+        n_R[R_mode_plus_idx[0]], n_R[R_mode_minus_idx[0]] = \
+            n_plus[R_mode_plus_idx[0]], n_minus[R_mode_minus_idx[0]]
 
-    return n_L, n_R, S, D, P
+        return n_L, n_R, S, D, P
+    
+    # if w is float, n_L and n_R are float, too.
+    else:
+        polarization_plus = - D / (S - n_plus)
+        polarization_minus = - D / (S - n_minus)
+
+        if polarization_plus < 0:
+            n_L = n_plus
+        else:
+            n_L = n_minus
+
+        if polarization_minus > 0:
+            n_R = n_minus
+        else:
+            n_R = n_plus
+
+        return n_L, n_R, S, D, P
 
 
 def calc_amp_ratio(n, S, D, P, theta):
@@ -78,16 +97,31 @@ def calc_amp_ratio(n, S, D, P, theta):
     !!!caution!!!
     n means squared refractive index
     '''
-    theta = np.deg2rad(theta)
+    if theta == 0:
+        cos = 1
+        sin = 0
+    elif theta == 90:
+        cos = 0
+        sin = 1
+    else:
+        cos = np.cos(np.deg2rad(theta))
+        sin = np.sin(np.deg2rad(theta))
 
     Ey_to_Ex = -D/(S-n)
-    Ez_to_Ex = np.where(P-n*np.sin(theta)**2 != 0, -n*np.cos(theta)*np.sin(theta)/(P-n*(np.sin(theta))**2), 0)
-    By_to_Bx = np.where(D*(P-n*(np.sin(theta))**2) != 0, -P*(S-n)/(D*(P-n*(np.sin(theta))**2)), 0)
-    Bz_to_Bx = -np.tan(theta)*np.ones(n.size)
-    squared_E_to_cB = (1-(Ey_to_Ex)**2+Ez_to_Ex**2)/(-(Ey_to_Ex)**2+(np.cos(theta)-Ez_to_Ex*np.sin(theta))**2)/n
-    for i in range(n.size):
-        if squared_E_to_cB[i] < 0:
-            squared_E_to_cB[i] = 0
-    E_to_cB = np.sqrt(squared_E_to_cB)
+    Ez_to_Ex = np.where(P-n*sin**2 != 0, -n*cos*sin/(P-n*sin**2), 0)
+    By_to_Bx = np.where(D*(P-n*sin**2) != 0, -P*(S-n)/(D*(P-n*sin**2)), 0)
+    Bz_to_Bx = -np.tan(np.deg2rad(theta))*np.ones(n.size)
+    squared_E_to_cB = (1+Ey_to_Ex**2+Ez_to_Ex**2)/(Ey_to_Ex**2+(cos-Ez_to_Ex*sin)**2)/n
+
+    if type(squared_E_to_cB) == np.ndarray:
+        for i in range(n.size):
+            if squared_E_to_cB[i] < 0:
+                squared_E_to_cB[i] = 0
+        E_to_cB = np.sqrt(squared_E_to_cB)
+    else:
+        if squared_E_to_cB < 0:
+            E_to_cB = 0
+        else:
+            E_to_cB = np.sqrt(squared_E_to_cB)
 
     return Ey_to_Ex, Ez_to_Ex, By_to_Bx, Bz_to_Bx, E_to_cB
