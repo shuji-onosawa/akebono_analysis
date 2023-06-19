@@ -1,4 +1,4 @@
-#3次元内の楕円板をプロットするプログラム
+#3次元内のプラズマ波動の偏波面をプロットするプログラム
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,7 +7,7 @@ from calc_dispersion_in_cold_plasma import calc_dispersion_relation, calc_amp_ra
 angle_freq = 2*np.pi*100
 theta = np.linspace(0, 2*np.pi, 100)
 
-# 楕円板のプロット
+# 偏波面のプロット
 fig = plt.figure(figsize=(14, 16))
 ax = fig.add_subplot(211, projection='3d')
 ax2 = fig.add_subplot(212, projection='3d')
@@ -21,7 +21,7 @@ for i in range(wave_normal_angles.size):
     wave_number_vec = np.array([np.sin(wna*np.pi/180), 0, np.cos(wna*np.pi/180)])
     n_L, n_R, S, D, P = calc_dispersion_relation(angle_freq, wna)
     Ey_Ex, Ez_Ex, By_Bx, Bz_Bx, E_cB = calc_amp_ratio(n_L, S, D, P, wna)
-    
+
     ax.scatter(np.cos(theta), -Ey_Ex*np.sin(theta), Ez_Ex*np.cos(theta),
                color=color[i], s=1.0, marker='o', label='WNA = '+str(wna)+' [deg]')
     ax.quiver(0, 0, 0, wave_number_vec[0], wave_number_vec[1], wave_number_vec[2])
