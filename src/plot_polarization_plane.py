@@ -18,17 +18,17 @@ color = [[0, 0, 0], [0, 0, 0.1], [0, 0, 0.2], [0, 0, 0.3], [0, 0, 0.4],
 
 for i in range(wave_normal_angles.size):
     wna = wave_normal_angles[i]
-    wave_number_vec = np.array([np.sin(wna*np.pi/180), 0, np.cos(wna*np.pi/180)])
+    k_vec = np.array([np.sin(wna*np.pi/180), 0, np.cos(wna*np.pi/180)])
     n_L, n_R, S, D, P = calc_dispersion_relation(angle_freq, wna)
     Ey_Ex, Ez_Ex, By_Bx, Bz_Bx, E_cB = calc_amp_ratio(n_L, S, D, P, wna)
 
     ax.scatter(np.cos(theta), -Ey_Ex*np.sin(theta), Ez_Ex*np.cos(theta),
                color=color[i], s=1.0, marker='o', label='WNA = '+str(wna)+' [deg]')
-    ax.quiver(0, 0, 0, wave_number_vec[0], wave_number_vec[1], wave_number_vec[2])
+    ax.quiver(0, 0, 0, k_vec[0], k_vec[1], k_vec[2])
     ax2.scatter(np.cos(theta), -By_Bx*np.sin(theta), Bz_Bx*np.cos(theta),
                 color=color[i], s=1.0, marker='o', label='WNA = '+str(wna)+' [deg]')
     ax2.quiver(0, 0, 0,
-               5*wave_number_vec[0], 5*wave_number_vec[1], 5*wave_number_vec[2])
+               5*k_vec[0], 5*k_vec[1], 5*k_vec[2])
 ax.set_xlim(-1.5, 1.5)
 ax.set_ylim(-1.5, 1.5)
 ax.set_zlim(-1.5, 1.5)
