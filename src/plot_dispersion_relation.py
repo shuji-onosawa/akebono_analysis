@@ -3,7 +3,7 @@ import plasma_params as pp
 import matplotlib.pyplot as plt
 import calc_dispersion_in_cold_plasma as calc_dr
 
-theta = 90
+theta = 0
 omega_s = pp.wlh
 freq = np.abs(omega_s['value'])*np.logspace(-4, 1, 1000)
 
@@ -27,7 +27,21 @@ axs.set_xlabel(r'$\omega/$'+omega_s['label'])
 axs.set_ylabel(r'$Refraction index ^2$')
 
 plt.legend()
-plt.savefig('../plots/dispersion_relation/refraction_index_wna_'+str(theta)+'.png')
+# plt.savefig('../plots/dispersion_relation/refraction_index_wna_'+str(theta)+'.png')
+plt.show()
+
+fig, axs = plt.subplots(nrows=1, ncols=1, figsize=[16, 8])
+axs.scatter(x=freq*n_L**0.5/pp.C/2/np.pi, y=freq/2/np.pi, label=r'$L mode$', c='r', marker='.')
+axs.scatter(x=freq*n_R**0.5/pp.C/2/np.pi, y=freq/2/np.pi, label=r'$R mode$', c='b', marker='.')
+axs.hlines(char_freq/2/np.pi, 0, 1e7, linestyles='dashed', colors='k')
+
+axs.set_xscale('log')
+axs.set_yscale('log')
+axs.set_xlabel(r'$1/\lambda [m^-1]$')
+axs.set_ylabel(r'$frequency [Hz]$')
+
+plt.legend()
+# plt.savefig('../plots/dispersion_relation/refraction_index_wna_'+str(theta)+'.png')
 plt.show()
 
 fig, axs = plt.subplots(nrows=1, ncols=1, figsize=[16, 8])
