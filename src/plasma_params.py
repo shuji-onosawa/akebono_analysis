@@ -12,8 +12,8 @@ C = 2.97e8  # [m s**-1]
 B0 = 5300e-9  # [T]
 
 # plasma parameter
-NE = 128e6  # [m**-3]
-ion_ratio = np.array([0.24, 0.08, 0.68])
+NE = 60e6  # [m**-3]
+ion_ratio = np.array([0.46, 0.11, 0.43])  # H:He:O
 nh = ion_ratio[0]*NE
 nhe = ion_ratio[1]*NE
 no = ion_ratio[2]*NE

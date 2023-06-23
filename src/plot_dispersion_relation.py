@@ -10,7 +10,7 @@ freq = np.abs(omega_s['value'])*np.logspace(-4, 1, 1000)
 n_L, n_R, S, D, P = calc_dr.calc_dispersion_relation(freq, theta)
 # idx = calc_dr.get_crossover_freq_idx(D, theta)
 
-char_freq = np.array([pp.omega_h['value'], pp.omega_o['value'], -pp.omega_e['value'], pp.wlh['value']])/omega_s['value']
+char_freq = np.array([pp.omega_he['value'], pp.omega_h['value'], pp.omega_o['value'], -pp.omega_e['value'], pp.wlh['value']])/omega_s['value']
 
 # crossover_freq = np.empty(idx.size)
 # for i in range(idx.size):
@@ -33,7 +33,7 @@ plt.show()
 fig, axs = plt.subplots(nrows=1, ncols=1, figsize=[16, 8])
 axs.scatter(x=freq*n_L**0.5/pp.C/2/np.pi, y=freq/2/np.pi, label=r'$L mode$', c='r', marker='.')
 axs.scatter(x=freq*n_R**0.5/pp.C/2/np.pi, y=freq/2/np.pi, label=r'$R mode$', c='b', marker='.')
-axs.hlines(char_freq/2/np.pi, 0, 1e7, linestyles='dashed', colors='k')
+axs.hlines(char_freq*omega_s['value']/2/np.pi, 0, 1e-3, linestyles='dashed', colors='k')
 
 axs.set_xscale('log')
 axs.set_yscale('log')

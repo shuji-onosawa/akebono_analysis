@@ -5,6 +5,13 @@ import os
 
 
 def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
+    """
+    theta: angle between spin plane normal vector and z axis
+    phi: angle between projection vector of spin plane normal vector on x-y plane and x axis
+    wna: wave normal angle
+    freq: wave frequency
+    mode: 'l' or 'r'
+    """
     theta_rad = np.deg2rad(theta)
     phi_rad = np.deg2rad(phi)
 
@@ -40,7 +47,7 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     elif mode == 'r':
         # right hand circular polarization
         Ey_Ex, Ez_Ex, By_Bx, Bz_Bx, E_cB = calc_amp_ratio(n_R, S, D, P, wna)
-    
+
     # 3D plot of spin plane and wave polarization plane
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(221, projection='3d')
@@ -102,17 +109,16 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     ax.legend()
 
     if mode == 'l':
-        savefig_dir = '../plots/projected_polarization_plane/left_hand_circular/'
+        savefig_dir = '../plots/projected_polarization_plane/left_hand_circular/freq'+str(freq)+'wna'+str(wna)+'theta'+str(theta)+'/'
     elif mode == 'r':
-        savefig_dir = '../plots/projected_polarization_plane/right_hand_circular/'
-    if os.path.exists(savefig_dir) is False:
-        os.mkdir(savefig_dir)
-    plt.savefig(savefig_dir+'wna'+str(wna)+'freq'+str(freq)+
-                '_spin-theta'+str(theta)+'spin-phi'+str(phi)+'.jpeg', dpi=300)
- 
+        savefig_dir = '../plots/projected_polarization_plane/right_hand_circular/freq'+str(freq)+'wna'+str(wna)+'theta'+str(theta)+'/'
+
+    os.makedirs(savefig_dir, exist_ok=True)
+    plt.savefig(savefig_dir+'spin-phi'+str(phi)+'.jpeg', dpi=300)
+
 
 for phi in np.linspace(0, 180, 19, dtype=int):
-    theta = 60
-    wna = 60
+    theta = 123.75
+    wna = 10
     freq = 100
-    plot_projected_polarization_plane(theta, phi, wna, freq, mode='l')
+    plot_projected_polarization_plane(theta, phi, wna, freq, mode='r')
