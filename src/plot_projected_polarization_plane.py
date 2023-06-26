@@ -115,10 +115,12 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
 
     os.makedirs(savefig_dir, exist_ok=True)
     plt.savefig(savefig_dir+'spin-phi'+str(phi)+'.jpeg', dpi=300)
+    plt.close()
 
 
-for phi in np.linspace(0, 180, 19, dtype=int):
-    theta = 123.75
-    wna = 10
-    freq = 100
-    plot_projected_polarization_plane(theta, phi, wna, freq, mode='r')
+for wna in np.linspace(0, 180, 19, dtype=int):
+    for phi in np.linspace(0, 180, 19, dtype=int):
+        theta = 123.75
+        wna = wna
+        freq = 100
+        plot_projected_polarization_plane(theta, phi, wna, freq, mode='r')
