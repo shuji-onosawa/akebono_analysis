@@ -7,6 +7,7 @@ import time
 import akebono
 import os
 import datetime
+import csv
 
 start = time.time()
 
@@ -188,18 +189,59 @@ def distribution_plot(channel: list,
     plt.clf()
     plt.close()
 
-date_range = ['1993-1-1', '1998-1-1']
+
+def save_dict_to_csv(dict_list: list):
+    '''
+    dict_list: list of dictionary
+    '''
+    # check the field
+    field = dict_list[0]['field']
+    if field == 'electric':
+        save_dir = '../execute/mca_intensity_distribution/Efield/'
+        # if there is no directory, make it
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+
+    elif field == 'magnetic':
+        save_dir = '../execute/mca_intensity_distribution/Mfield/'
+        # if there is no directory, make it
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+
+    for k in range(len(dict_list)):
+        trange = dict_list[k]['trange']
+        # trangeはlist型、長さ2。trange[1]の日付を1日前の日付にする
+        trange[1] = (datetime.datetime.strptime(trange[1], '%Y-%m-%d') - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+        alt_range = dict_list[k]['alt_range']
+        mlt_range = dict_list[k]['mlt_range']
+        ilat_range = dict_list[k]['ilat_range']
+        save_name = save_dir + 'mca_' + field + '_' +\
+            trange[0]+'_'+trange[1]+'_' +\
+            'alt'+str(alt_range[0])+'_'+str(alt_range[1]) +\
+            'mlt'+str(mlt_range[0])+'_'+str(mlt_range[1]) +\
+            'ilat'+str(ilat_range[0])+'_'+str(ilat_range[1]) + '.csv'
+        with open(save_name, 'w') as f:
+            writer = csv.writer(f)
+            writer.writerow(['freq', 'intensity', 'count'])
+            for i in range(16):
+                for j in range(255):
+                    writer.writerow([i, j, dict_list[k]['matrix'][i][j]])
+
+
+
+date_range = ['1990-1-1', '1994-1-1']
 mlt_range = [11, 13]
 ilat_range = [77, 79]
 
-e_dict1, _ = count_mca_intensity(trange=date_range, alt_range=[0, 1000], mlt_range=mlt_range, ilat_range=ilat_range)
-e_dict2, _ = count_mca_intensity(trange=date_range, alt_range=[1000, 2000], mlt_range=mlt_range, ilat_range=ilat_range)
-e_dict3, _ = count_mca_intensity(trange=date_range, alt_range=[2000, 3000], mlt_range=mlt_range, ilat_range=ilat_range)
-e_dict4, _ = count_mca_intensity(trange=date_range, alt_range=[3000, 4000], mlt_range=mlt_range, ilat_range=ilat_range)
-e_dict5, _ = count_mca_intensity(trange=date_range, alt_range=[4000, 5000], mlt_range=mlt_range, ilat_range=ilat_range)
-e_dict6, _ = count_mca_intensity(trange=date_range, alt_range=[5000, 6000], mlt_range=mlt_range, ilat_range=ilat_range)
+e_dict1, _ = count_mca_intensity(trange=date_range, alt_range=[0, 10000], mlt_range=mlt_range, ilat_range=ilat_range)
+#e_dict2, _ = count_mca_intensity(trange=date_range, alt_range=[1000, 2000], mlt_range=mlt_range, ilat_range=ilat_range)
+#e_dict3, _ = count_mca_intensity(trange=date_range, alt_range=[2000, 3000], mlt_range=mlt_range, ilat_range=ilat_range)
+#e_dict4, _ = count_mca_intensity(trange=date_range, alt_range=[3000, 4000], mlt_range=mlt_range, ilat_range=ilat_range)
+#e_dict5, _ = count_mca_intensity(trange=date_range, alt_range=[4000, 5000], mlt_range=mlt_range, ilat_range=ilat_range)
+#e_dict6, _ = count_mca_intensity(trange=date_range, alt_range=[5000, 6000], mlt_range=mlt_range, ilat_range=ilat_range)
 
 elapsed_time = time.time() - start
 print("elapsed_time:{:.3f}".format(elapsed_time) + "[sec]")
 
-distribution_plot(channel=[1, 3, 5], dict_list=[e_dict1, e_dict2, e_dict3, e_dict4, e_dict5, e_dict6])
+# 辞書型の変数e_dict1, e_dict2, e_dict3, e_dict4, e_dict5, e_dict6をcsvファイルに保存
+save_dict_to_csv([e_dict1])
