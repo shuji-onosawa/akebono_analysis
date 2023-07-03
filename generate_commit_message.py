@@ -4,7 +4,7 @@ import subprocess
 import openai
 
 # OpenAI APIキーの設定
-openai.api_key = "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"
+openai.api_key = "YOUR_API_KEY"
 
 # Gitの差分を取得
 diff_output = subprocess.check_output(["git", "diff"]).decode("utf-8")
