@@ -1,4 +1,4 @@
-from pytplot import get_data
+from pytplot import get_data, cdf_to_tplot
 from pyspedas import tinterpol
 import matplotlib.pyplot as plt
 import numpy as np
@@ -44,7 +44,12 @@ def count_mca_intensity(trange,
 
     for i in range(date_list.size-1):
         print(date_list[i])
-        akebono.vlf_mca([date_list[i], date_list[i+1]], datatype='dB', del_invalid_data=postgap)
+        # akebono.vlf_mca([date_list[i], date_list[i+1]], datatype='dB', del_invalid_data=postgap)
+        # yyyy-mm-dd -> yyyymmdd
+        year = date_list[i][0:4]
+        date = date_list[i][0:4] + date_list[i][5:7] + date_list[i][8:10]
+        filename = '../akebono_data/vlf/mca/h1/ave0.5s/'+year+'/ak_h1_mca_'+date+'_v02.cdf'
+        cdf_to_tplot(filename, prefix='akb_mca_')
         try:
             akebono.orb([date_list[i], date_list[i+1]])
         except Exception as e:
@@ -229,9 +234,9 @@ def save_dict_to_csv(dict_list: list):
 
 
 
-date_range = ['1990-1-1', '1994-1-1']
+date_range = ['1990-2-1', '1990-2-28']
 mlt_range = [11, 13]
-ilat_range = [77, 79]
+ilat_range = [75, 80]
 
 e_dict1, _ = count_mca_intensity(trange=date_range, alt_range=[0, 10000], mlt_range=mlt_range, ilat_range=ilat_range)
 #e_dict2, _ = count_mca_intensity(trange=date_range, alt_range=[1000, 2000], mlt_range=mlt_range, ilat_range=ilat_range)
