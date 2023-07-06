@@ -5,4 +5,4 @@ execute/
 .venv
 .venv_test
 .python-version
-generate_commit_message.py
+src/generate_commit_message.py
