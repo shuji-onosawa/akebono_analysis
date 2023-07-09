@@ -70,7 +70,7 @@ def get_data_in_angle_range(angle_ary, data_ary, angle_range: list):
 
 
 # 与えられた配列の要素が負の値から正の値に変わるインデックスを取得
-def find_positive_negative_pairs(input_array):
+def find_zero_cross_idx(input_array):
     # 入力をNumPy配列に変換
     np_array = np.array(input_array)
 
@@ -79,6 +79,7 @@ def find_positive_negative_pairs(input_array):
     neg_mask = np_array < 0
 
     # pos_maskを1つシフトしてから、論理ANDをとることで、正の値の次が負の値となるインデックスを見つける
-    indices = np.where(pos_mask[:-1] & neg_mask[1:])[0]
+    pos_to_neg_indices = np.where(pos_mask[:-1] & neg_mask[1:])[0]
+    neg_to_pos_indices = np.where(pos_mask[1:] & neg_mask[:-1])[0]
 
-    return indices.tolist()
+    return pos_to_neg_indices, neg_to_pos_indices
