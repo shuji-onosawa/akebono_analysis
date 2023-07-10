@@ -9,7 +9,7 @@ start_time = date+'T18:05:00'
 end_time = date+'T18:09:00'
 
 # output
-output_dir = '../plots/Isigaya/'+date+'/'
+output_dir = '../plots/Isigaya_events/'+date+'/'
 os.makedirs(output_dir, exist_ok=True)
 
 # calc
