@@ -74,3 +74,37 @@ def calc_pwr_matrix_angle_vs_freq(dataset: xr.Dataset,
         else:
             mean_pwr_matrix[i] = dataset_in_angle_range[data_name].mean(dim='Epoch')
     return mean_pwr_matrix
+
+def calc_pwr_matrix_angle_vs_freq_halfspin(dataset: xr.Dataset,
+                                           data_name: str,
+                                           angle_name: str):
+    '''
+    Parameters
+    ----------
+    date : str, optional
+        日付, yyyy-mm-dd
+    data_name : str, optional
+        例: 'akb_mca_Emax_pwr'
+    angle_name : str, optional
+        例: 'angle_b0_Ey'
+    '''
+    angle_list = [0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5, 180]
+
+    mean_pwr_matrix = np.zeros((len(angle_list)-1, 16))
+    std_matrix = np.zeros((len(angle_list)-1, 16))
+
+    for i in range(len(angle_list)-1):
+        condition_pos = (dataset[angle_name] >= angle_list[i]) &\
+                        (dataset[angle_name] < angle_list[i+1])
+        condition_neg = (dataset[angle_name] >= -180+angle_list[i]) &\
+                        (dataset[angle_name] < -180+angle_list[i+1])
+        condition = condition_pos | condition_neg
+        dataset_in_angle_range = dataset.where(condition, drop=True)
+        if dataset_in_angle_range[angle_name].size == 0:
+            mean_pwr_matrix[i, :] = np.nan
+            std_matrix[i, :] = np.nan
+        else:
+            mean_pwr_matrix[i] = dataset_in_angle_range[data_name].mean(dim='Epoch')
+            std_matrix[i] = dataset_in_angle_range[data_name].std(dim='Epoch', skipna=True)
+    
+    return mean_pwr_matrix, std_matrix
