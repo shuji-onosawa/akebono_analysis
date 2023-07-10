@@ -24,6 +24,7 @@ mean_lBmatrix, std_lBmatrix = calc_pwr_matrix_angle_vs_freq_halfspin(sub_dataset
 freq_label = ['3.16 Hz', '5.62 Hz', '10 Hz', '17.8 Hz', '31.6 Hz', '56.2 Hz', '100 Hz',
               '178 Hz', '316 Hz', '562 Hz', '1 kHz', '1.78 kHz']
 angle_list = [11.25, 33.75, 56.25, 78.75, 101.25, 123.75, 146.25, 168.75]
+# E field
 fig = plt.figure(figsize=(14, 10))
 for i in range(12):
     ax = fig.add_subplot(4, 3, i+1)
@@ -39,5 +40,35 @@ for i in range(12):
     ax.set_xticks([0, 45, 90, 135, 180])
     ax.legend(loc='lower right')
 plt.tight_layout()
-# plt.savefig('../plots/Ishigaya_events/1990-2-11/Epwr_vs_angle.jpeg')
-plt.show()
+plt.savefig(output_dir+'Epwr_vs_angle_halfspin.jpeg', dpi=300)
+
+# M field
+fig = plt.figure(figsize=(14, 10))
+for i in range(10):
+    ax = fig.add_subplot(4, 3, i+1)
+    ax.plot(angle_list, mean_sBmatrix[:, i]/np.nanmax(mean_sBmatrix[:, i]), label=freq_label[i], marker='o')
+    # errorbar
+    ax.errorbar(angle_list, mean_sBmatrix[:, i]/np.nanmax(mean_sBmatrix[:, i]),
+                yerr=std_sBmatrix[:, i]/np.nanmax(mean_sBmatrix[:, i]), fmt='none', ecolor='k')
+    ax.set_xlabel('angle [deg]')
+    ax.set_ylabel('Bpwr mean/Bpwr max')
+    ax.set_xlim(0, 180)
+    ax.set_ylim(0, 1.1)
+    ax.set_xticks([0, 45, 90, 135, 180])
+    # legend at upper right
+    ax.legend(loc='lower right')
+for j in range(2):
+    ax = fig.add_subplot(4, 3, j+11)
+    ax.plot(angle_list, mean_lBmatrix[:, j+10]/np.nanmax(mean_lBmatrix[:, j+10]),
+            label=freq_label[j+10], marker='o')
+    # errorbar
+    ax.errorbar(angle_list, mean_lBmatrix[:, j+10]/np.nanmax(mean_lBmatrix[:, j+10]),
+                yerr=std_lBmatrix[:, j+10]/np.nanmax(mean_lBmatrix[:, j+10]), fmt='none', ecolor='k')
+    ax.set_xlabel('angle [deg]')
+    ax.set_ylabel('Bpwr mean/Bpwr max')
+    ax.set_xlim(0, 180)
+    ax.set_ylim(0, 1.1)
+    ax.set_xticks([0, 45, 90, 135, 180])
+    ax.legend(loc='lower right')
+plt.tight_layout()
+plt.savefig(output_dir+'Bpwr_vs_angle_halfspin.jpeg', dpi=300)
