@@ -5,8 +5,8 @@ import numpy as np
 
 # input
 date = '1990-2-11'
-start_time = date+'T18:05:00'
-end_time = date+'T18:09:00'
+start_time = date+'T18:05:20'
+end_time = date+'T18:08:40'
 
 # output
 output_dir = '../plots/Ishigaya_events/'+date+'/'

@@ -111,7 +111,11 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     # calc field vector norm
     Evec_proj_vec_norm = np.linalg.norm(Evec_proj_vec, axis=1)
     Bvec_proj_vec_norm = np.linalg.norm(Bvec_proj_vec, axis=1)
-
+    # print angle_E_b0 at max E field
+    print(wna, phi)
+    print('angle_E_b0 at max E field = '+str(np.rad2deg(angle_E_b0[np.argmax(Evec_proj_vec_norm)])))
+    # print angle_B_b0 at max B field
+    print('angle_B_b0 at max B field = '+str(np.rad2deg(angle_B_b0[np.argmax(Bvec_proj_vec_norm)])))
     ax = fig.add_subplot(223)
     ax.scatter(np.rad2deg(angle_E_b0), Evec_proj_vec_norm/np.nanmax(Evec_proj_vec_norm),
                color='r', label='E field', s=2.0)
@@ -130,18 +134,18 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     ax.legend(loc='lower right')
     plt.show
     if mode == 'l':
-        savefig_dir = '../plots/projected_polarization_plane/left_hand_circular/freq'+str(freq)+'wna'+str(wna)+'theta'+str(theta)+'/'
+        savefig_dir = '../plots/projected_polarization_plane/left_hand_circular/freq'+str(freq)+'/wna'+str(wna)+'theta'+str(theta)+'/'
     elif mode == 'r':
-        savefig_dir = '../plots/projected_polarization_plane/right_hand_circular/freq'+str(freq)+'wna'+str(wna)+'theta'+str(theta)+'/'
+        savefig_dir = '../plots/projected_polarization_plane/right_hand_circular/freq'+str(freq)+'/wna'+str(wna)+'theta'+str(theta)+'/'
 
     os.makedirs(savefig_dir, exist_ok=True)
     plt.savefig(savefig_dir+'spin-phi'+str(phi)+'.jpeg', dpi=300)
     plt.close()
 
 
-for wna in np.linspace(0, 180, 19, dtype=int):
+for wna in np.linspace(0, 90, 10, dtype=int):
     for phi in np.linspace(0, 180, 19, dtype=int):
         theta = 123.75
         wna = wna
-        freq = 100
+        freq = 178
         plot_projected_polarization_plane(theta, phi, wna, freq, mode='r')

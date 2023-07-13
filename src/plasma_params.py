@@ -9,7 +9,7 @@ MH = 1.7e-27  # [kg]
 MHE = 6.7e-27  # [kg]
 MO = 2.7e-26  # [kg]
 C = 2.97e8  # [m s**-1]
-B0 = 5300e-9  # [T]
+B0 = 8507e-9  # [T]
 
 # plasma parameter
 NE = 60e6  # [m**-3]

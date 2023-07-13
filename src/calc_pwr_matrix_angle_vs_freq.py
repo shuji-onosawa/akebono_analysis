@@ -104,6 +104,7 @@ def calc_pwr_matrix_angle_vs_freq_halfspin(dataset: xr.Dataset,
             mean_pwr_matrix[i, :] = np.nan
             std_matrix[i, :] = np.nan
         else:
+            print(dataset_in_angle_range[angle_name].mean(dim='Epoch').size)
             mean_pwr_matrix[i] = dataset_in_angle_range[data_name].mean(dim='Epoch')
             std_matrix[i] = dataset_in_angle_range[data_name].std(dim='Epoch', skipna=True)
     
