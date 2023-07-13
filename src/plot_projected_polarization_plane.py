@@ -117,13 +117,15 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
                color='r', label='E field', s=2.0)
     ax.scatter(np.rad2deg(angle_B_b0), Bvec_proj_vec_norm/np.nanmax(Bvec_proj_vec_norm),
                color='b', label='B field', s=2.0)
-    ax.set_xlim(-180, 180)
+    ax.set_xlim(0, 180)
     ax.set_ylim(0, 1.1)
     ax.vlines([-90, 90], 0, 1.1, color='k', linestyle='dashed')
+    ax.vlines([112.5, 135.0], 0, 1.1, color='r', linestyle='dashed')
+    ax.vlines([45.0, 67.5], 0, 1.1, color='b', linestyle='dashed')
 
     ax.set_xlabel('angle')
     ax.set_ylabel('power')
-    ax.set_xticks([-180, -90, 0, 90, 180])
+    ax.set_xticks([0, 90, 180])
     # legend position
     ax.legend(loc='lower right')
     plt.show
