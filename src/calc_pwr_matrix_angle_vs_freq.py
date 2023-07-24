@@ -75,14 +75,13 @@ def calc_pwr_matrix_angle_vs_freq(dataset: xr.Dataset,
             mean_pwr_matrix[i] = dataset_in_angle_range[data_name].mean(dim='Epoch')
     return mean_pwr_matrix
 
+
 def calc_pwr_matrix_angle_vs_freq_halfspin(dataset: xr.Dataset,
                                            data_name: str,
                                            angle_name: str):
     '''
     Parameters
     ----------
-    date : str, optional
-        日付, yyyy-mm-dd
     data_name : str, optional
         例: 'akb_mca_Emax_pwr'
     angle_name : str, optional
@@ -107,5 +106,14 @@ def calc_pwr_matrix_angle_vs_freq_halfspin(dataset: xr.Dataset,
             print(dataset_in_angle_range[angle_name].mean(dim='Epoch').size)
             mean_pwr_matrix[i] = dataset_in_angle_range[data_name].mean(dim='Epoch')
             std_matrix[i] = dataset_in_angle_range[data_name].std(dim='Epoch', skipna=True)
-    
+
     return mean_pwr_matrix, std_matrix
+
+
+def make_1ch_pwr_angle_ds(dataset: xr.Dataset,
+                          ch_idx: int):
+    ds_1ch = dataset.isel(channel=ch_idx)
+
+
+
+
