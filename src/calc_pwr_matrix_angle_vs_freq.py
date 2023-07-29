@@ -110,10 +110,21 @@ def calc_pwr_matrix_angle_vs_freq_halfspin(dataset: xr.Dataset,
     return mean_pwr_matrix, std_matrix
 
 
-def make_1ch_pwr_angle_ds(dataset: xr.Dataset,
-                          ch_idx: int):
+def make_1ch_Epwr_over0p3max_ds(dataset: xr.Dataset,
+                                ch_idx: int):
     ds_1ch = dataset.isel(channel=ch_idx)
 
+    max_Epwr_value = ds_1ch.max(dim='Epoch')['akb_mca_Emax_pwr'].values
+    ds_1ch_over_0p3 = ds_1ch.where(ds_1ch['akb_mca_Emax_pwr'] > 0.3*max_Epwr_value, drop=True)
+
+    return ds_1ch_over_0p3
 
 
+def make_1ch_Bpwr_over0p3max_ds(dataset: xr.Dataset,
+                                ch_idx: int):
+    ds_1ch = dataset.isel(channel=ch_idx)
 
+    max_Bpwr_value = ds_1ch.max(dim='Epoch')['akb_mca_Bmax_pwr'].values
+    ds_1ch_over_0p3 = ds_1ch.where(ds_1ch['akb_mca_Bmax_pwr'] > 0.3*max_Bpwr_value, drop=True)
+
+    return ds_1ch_over_0p3

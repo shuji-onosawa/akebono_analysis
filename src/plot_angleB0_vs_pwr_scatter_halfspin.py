@@ -1,4 +1,4 @@
-from calc_pwr_matrix_angle_vs_freq import make_wave_mgf_dataset
+from calc_pwr_matrix_angle_vs_freq import make_wave_mgf_dataset, make_1ch_Bpwr_over0p3max_ds, make_1ch_Epwr_over0p3max_ds
 import os
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,16 +16,23 @@ os.makedirs(output_dir, exist_ok=True)
 wave_mgf_dataset = make_wave_mgf_dataset(date, mca_datatype='pwr')
 sub_dataset = wave_mgf_dataset.sel(Epoch=slice(start_time, end_time))
 
-Epwr = sub_dataset['akb_mca_Emax_pwr'].values
-Bpwr = sub_dataset['akb_mca_Bmax_pwr'].values
-angle_b0_Ey = sub_dataset['angle_b0_Ey'].values
-angle_b0_sBy = sub_dataset['angle_b0_sBy'].values
-angle_b0_Bloop = sub_dataset['angle_b0_Bloop'].values
+Epwr_list = []
+Bpwr_list = []
+angle_b0_Ey_list = []
+angle_b0_sBy_list = []
+angle_b0_Bloop_list = []
 
-angle_b0_Ey = np.where(angle_b0_Ey < 0, angle_b0_Ey+180, angle_b0_Ey)
-angle_b0_sBy = np.where(angle_b0_sBy < 0, angle_b0_sBy+180, angle_b0_sBy)
-angle_b0_Bloop = np.where(angle_b0_Bloop < 0,
-                          angle_b0_Bloop+180, angle_b0_Bloop)
+for ch in range(12):
+    Epwr_over0p3_ds = make_1ch_Epwr_over0p3max_ds(sub_dataset, ch)
+    Bpwr_over0p3_ds = make_1ch_Bpwr_over0p3max_ds(sub_dataset, ch)
+    angle_b0_Ey = Epwr_over0p3_ds['angle_b0_Ey'].values
+    angle_b0_sBy = Bpwr_over0p3_ds['angle_b0_sBy'].values
+    angle_b0_Bloop = Bpwr_over0p3_ds['angle_b0_Bloop'].values
+
+    angle_b0_Ey = np.where(angle_b0_Ey < 0, angle_b0_Ey+180, angle_b0_Ey)
+    angle_b0_sBy = np.where(angle_b0_sBy < 0, angle_b0_sBy+180, angle_b0_sBy)
+    angle_b0_Bloop = np.where(angle_b0_Bloop < 0,
+                              angle_b0_Bloop+180, angle_b0_Bloop)
 
 # plot
 freq_label = ['3.16 Hz', '5.62 Hz', '10 Hz', '17.8 Hz', '31.6 Hz', '56.2 Hz', '100 Hz',
@@ -41,6 +48,8 @@ for i in range(12):
     ax.set_ylabel('Ey [(mV/m)^2/Hz]')
     ax.set_xticks([0, 45, 90, 135, 180])
     ax.legend(loc='lower right')
+    # set title for each subplot
+    ax.set_title(f'ch{ch+1}')
 plt.tight_layout()
 plt.savefig(output_dir+'Epwr_vs_angle_scatter_halfspin.jpeg', dpi=300)
 
