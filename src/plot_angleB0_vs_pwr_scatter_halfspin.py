@@ -8,6 +8,10 @@ date = '1990-2-11'
 start_time = date+'T18:05:20'
 end_time = date+'T18:08:40'
 
+freq_label = ['3.16 Hz', '5.62 Hz', '10 Hz', '17.8 Hz', '31.6 Hz', '56.2 Hz', '100 Hz',
+              '178 Hz', '316 Hz', '562 Hz', '1 kHz', '1.78 kHz']
+angle_list = [11.25, 33.75, 56.25, 78.75, 101.25, 123.75, 146.25, 168.75]
+
 # output
 output_dir = '../plots/Ishigaya_events/'+date+'/'
 os.makedirs(output_dir, exist_ok=True)
@@ -25,50 +29,64 @@ angle_b0_Bloop_list = []
 for ch in range(12):
     Epwr_over0p3_ds = make_1ch_Epwr_over0p3max_ds(sub_dataset, ch)
     Bpwr_over0p3_ds = make_1ch_Bpwr_over0p3max_ds(sub_dataset, ch)
+
     angle_b0_Ey = Epwr_over0p3_ds['angle_b0_Ey'].values
     angle_b0_sBy = Bpwr_over0p3_ds['angle_b0_sBy'].values
     angle_b0_Bloop = Bpwr_over0p3_ds['angle_b0_Bloop'].values
-
     angle_b0_Ey = np.where(angle_b0_Ey < 0, angle_b0_Ey+180, angle_b0_Ey)
     angle_b0_sBy = np.where(angle_b0_sBy < 0, angle_b0_sBy+180, angle_b0_sBy)
     angle_b0_Bloop = np.where(angle_b0_Bloop < 0,
                               angle_b0_Bloop+180, angle_b0_Bloop)
+    
+    Epwr_list.append(Epwr_over0p3_ds['akb_mca_Emax_pwr'].values)
+    Bpwr_list.append(Bpwr_over0p3_ds['akb_mca_Bmax_pwr'].values)
+    angle_b0_Ey_list.append(angle_b0_Ey)
+    angle_b0_sBy_list.append(angle_b0_sBy)
+    angle_b0_Bloop_list.append(angle_b0_Bloop)
+
+    # calc mean and std for each freq and angle bin
+    for angle_idx in range(len(angle_list)-1):
+        condition_pos = (angle_b0_Ey >= angle_list[angle_idx]) &\
+                        (angle_b0_Ey < angle_list[angle_idx+1])
 
 # plot
-freq_label = ['3.16 Hz', '5.62 Hz', '10 Hz', '17.8 Hz', '31.6 Hz', '56.2 Hz', '100 Hz',
-              '178 Hz', '316 Hz', '562 Hz', '1 kHz', '1.78 kHz']
-angle_list = [11.25, 33.75, 56.25, 78.75, 101.25, 123.75, 146.25, 168.75]
 # E field
-fig = plt.figure(figsize=(14, 10))
+fig = plt.figure(figsize=(16, 10))
 for i in range(12):
     ax = fig.add_subplot(4, 3, i+1)
-    ax.scatter(angle_b0_Ey, Epwr[:, i],
+    ax.scatter(angle_b0_Ey_list[i], Epwr_list[i],
                label=freq_label[i])
     ax.set_xlabel('angle [deg]')
     ax.set_ylabel('Ey [(mV/m)^2/Hz]')
     ax.set_xticks([0, 45, 90, 135, 180])
     ax.legend(loc='lower right')
     # set title for each subplot
-    ax.set_title(f'ch{ch+1}')
+    ax.set_title(f'ch{i+1}, samples={len(angle_b0_Ey_list[i])}')
 plt.tight_layout()
 plt.savefig(output_dir+'Epwr_vs_angle_scatter_halfspin.jpeg', dpi=300)
 
 # M field
-fig = plt.figure(figsize=(14, 10))
+fig = plt.figure(figsize=(16, 10))
 for i in range(10):
     ax = fig.add_subplot(4, 3, i+1)
-    ax.scatter(angle_b0_sBy, Bpwr[:, i], label=freq_label[i])
+    ax.scatter(angle_b0_sBy_list[i], Bpwr_list[i],
+               label=freq_label[i])
     ax.set_xlabel('angle [deg]')
     ax.set_ylabel('B search coil [(nT)^2/Hz]')
     ax.set_xticks([0, 45, 90, 135, 180])
     # legend at upper right
     ax.legend(loc='lower right')
+    # set title for each subplot
+    ax.set_title(f'ch{i+1}, samples={len(angle_b0_sBy_list[i])}')
 for j in range(2):
     ax = fig.add_subplot(4, 3, j+11)
-    ax.scatter(angle_b0_Bloop, Bpwr[:, j+10], label=freq_label[j+10])
+    ax.scatter(angle_b0_Bloop_list[j+10], Bpwr_list[j+10],
+               label=freq_label[j+10])
     ax.set_xlabel('angle [deg]')
     ax.set_ylabel('B loop [(nT)^2/Hz]')
     ax.set_xticks([0, 45, 90, 135, 180])
     ax.legend(loc='lower right')
+    # set title for each subplot
+    ax.set_title(f'ch{j+10}, samples={len(angle_b0_Bloop_list[j+10])}')
 plt.tight_layout()
 plt.savefig(output_dir+'Bpwr_vs_angle_scatter_halfspin.jpeg', dpi=300)

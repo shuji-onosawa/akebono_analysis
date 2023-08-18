@@ -7,3 +7,4 @@ execute/
 .python-version
 src/generate_commit_message.py
 src/__pycache__/
+*.pyc
