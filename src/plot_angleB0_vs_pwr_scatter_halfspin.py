@@ -1,4 +1,4 @@
-from calc_pwr_matrix_angle_vs_freq import make_wave_mgf_dataset, make_1ch_Bpwr_over0p3max_ds, make_1ch_Epwr_over0p3max_ds
+from calc_pwr_matrix_angle_vs_freq import make_wave_mgf_dataset, make_1ch_Epwr_thresholded_by_max_ds, make_1ch_Bpwr_thresholded_by_max_ds
 import os
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,7 +12,7 @@ freq_label = ['3.16 Hz', '5.62 Hz', '10 Hz', '17.8 Hz', '31.6 Hz', '56.2 Hz', '1
               '178 Hz', '316 Hz', '562 Hz', '1 kHz', '1.78 kHz']
 angle_list = [0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5, 180]
 angle_label_list = [11.25, 33.75, 56.25, 78.75, 101.25, 123.75, 146.25, 168.75]
-
+threshold_percent = 0.3
 # output
 output_dir = '../plots/Ishigaya_events/'+date+'/'
 os.makedirs(output_dir, exist_ok=True)
@@ -35,8 +35,8 @@ std_Bpwr_list = []
 std_Bloop_list = []
 
 for ch in range(12):
-    Epwr_over0p3_ds = make_1ch_Epwr_over0p3max_ds(sub_dataset, ch)
-    Bpwr_over0p3_ds = make_1ch_Bpwr_over0p3max_ds(sub_dataset, ch)
+    Epwr_over0p3_ds = make_1ch_Epwr_thresholded_by_max_ds(sub_dataset, ch, threshold_percent)
+    Bpwr_over0p3_ds = make_1ch_Bpwr_thresholded_by_max_ds(sub_dataset, ch, threshold_percent)
 
     angle_b0_Ey = Epwr_over0p3_ds['angle_b0_Ey'].values
     angle_b0_sBy = Bpwr_over0p3_ds['angle_b0_sBy'].values
@@ -108,6 +108,8 @@ for i in range(12):
     ax.legend(loc='lower right')
     # set title for each subplot
     ax.set_title(f'ch{i+1}, samples={len(angle_b0_Ey_list[i])}')
+# set title for the whole figure
+fig.suptitle('Ey over {threshold_percent}% of max vs angle'.format(threshold_percent=threshold_percent))
 plt.tight_layout()
 plt.savefig(output_dir+'Epwr_vs_angle_scatter.jpeg', dpi=300)
 
@@ -123,6 +125,8 @@ for i in range(12):
     ax.legend(loc='lower right')
     # set title for each subplot
     ax.set_title(f'ch{i+1}, samples={len(angle_b0_Ey_list[i])}')
+# set title for the whole figure
+fig.suptitle('mean Ey over {threshold_percent}% of max vs angle'.format(threshold_percent=threshold_percent))
 plt.tight_layout()
 plt.savefig(output_dir+'Epwr_vs_angle_mean.jpeg', dpi=300)
 
@@ -150,6 +154,8 @@ for j in range(2):
     ax.legend(loc='lower right')
     # set title for each subplot
     ax.set_title(f'ch{j+10}, samples={len(angle_b0_Bloop_list[j+10])}')
+# set title for the whole figure
+fig.suptitle('B over {threshold_percent}% of max vs angle'.format(threshold_percent=threshold_percent))
 plt.tight_layout()
 plt.savefig(output_dir+'Bpwr_vs_angle_scatter.jpeg', dpi=300)
 
@@ -175,5 +181,7 @@ for j in range(2):
     ax.legend(loc='lower right')
     # set title for each subplot
     ax.set_title(f'ch{j+10}, samples={len(angle_b0_Bloop_list[j+10])}')
+# set title for the whole figure
+fig.suptitle('mean B over {threshold_percent}% of max vs angle'.format(threshold_percent=threshold_percent))
 plt.tight_layout()
 plt.savefig(output_dir+'Bpwr_vs_angle_mean.jpeg', dpi=300)
