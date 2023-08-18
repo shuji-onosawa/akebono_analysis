@@ -12,7 +12,7 @@ freq_label = ['3.16 Hz', '5.62 Hz', '10 Hz', '17.8 Hz', '31.6 Hz', '56.2 Hz', '1
               '178 Hz', '316 Hz', '562 Hz', '1 kHz', '1.78 kHz']
 angle_list = [0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5, 180]
 angle_label_list = [11.25, 33.75, 56.25, 78.75, 101.25, 123.75, 146.25, 168.75]
-threshold_percent = 0.0
+threshold_percent = 0.3
 # output
 output_dir = '../plots/Ishigaya_events/'+date+'/'
 os.makedirs(output_dir, exist_ok=True)
@@ -192,10 +192,12 @@ plt.savefig(output_dir+'Bpwr_vs_angle_mean.jpeg', dpi=300)
 fig = plt.figure(figsize=(16, 10))
 for i in range(12):
     ax = fig.add_subplot(4, 3, i+1)
-    ax.errorbar(angle_label_list, mean_Epwr_list[i]/max(mean_Epwr_list[i]), yerr=std_Epwr_list[i]/max(mean_Epwr_list[i]),
+    ax.errorbar(angle_label_list, mean_Epwr_list[i]/np.nanmax(mean_Epwr_list[i]), yerr=std_Epwr_list[i]/np.nanmax(mean_Epwr_list[i]),
                 label=freq_label[i])
     ax.set_xlabel('angle [deg]')
     ax.set_ylabel('Ey/Ey_max')
+    # limit y axis to 0-1.1
+    ax.set_ylim(0, 1.1)
     ax.set_xticks([0, 45, 90, 135, 180])
     ax.legend(loc='lower right')
     # set title for each subplot
@@ -210,20 +212,24 @@ plt.savefig(output_dir+'Epwr_vs_angle_mean_normalized.jpeg', dpi=300)
 fig = plt.figure(figsize=(16, 10))
 for i in range(10):
     ax = fig.add_subplot(4, 3, i+1)
-    ax.errorbar(angle_label_list, mean_Bpwr_list[i]/max(mean_Bpwr_list[i]), yerr=std_Bpwr_list[i]/max(mean_Bpwr_list[i]),
+    ax.errorbar(angle_label_list, mean_Bpwr_list[i]/np.nanmax(mean_Bpwr_list[i]), yerr=std_Bpwr_list[i]/np.nanmax(mean_Bpwr_list[i]),
                 label=freq_label[i])
     ax.set_xlabel('angle [deg]')
     ax.set_ylabel('sBy/sBy_max')
+    # limit y axis to 0-1.1
+    ax.set_ylim(0, 1.1)
     ax.set_xticks([0, 45, 90, 135, 180])
     ax.legend(loc='lower right')
     # set title for each subplot
     ax.set_title(f'ch{i+1}, samples={len(angle_b0_sBy_list[i])}')
 for j in range(2):
     ax = fig.add_subplot(4, 3, j+11)
-    ax.errorbar(angle_label_list, mean_Bloop_list[j+10]/max(mean_Bloop_list[j+10]), yerr=std_Bloop_list[j+10]/max(mean_Bloop_list[j+10]),
+    ax.errorbar(angle_label_list, mean_Bloop_list[j+10]/np.nanmax(mean_Bloop_list[j+10]), yerr=std_Bloop_list[j+10]/np.nanmax(mean_Bloop_list[j+10]),
                 label=freq_label[j+10])
     ax.set_xlabel('angle [deg]')
     ax.set_ylabel('Bloop/Bloop_max')
+    # limit y axis to 0-1.1
+    ax.set_ylim(0, 1.1)
     ax.set_xticks([0, 45, 90, 135, 180])
     ax.legend(loc='lower right')
     # set title for each subplot
