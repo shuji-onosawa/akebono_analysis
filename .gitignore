@@ -3,7 +3,6 @@ omni_data/
 plots/
 execute/
 .venv
-.venv_test
 .python-version
 src/generate_commit_message.py
 src/__pycache__/
