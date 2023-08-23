@@ -259,7 +259,10 @@ def orb(trange=['2012-10-01', '2012-10-02'],
     Returns
     ----------
         List of tplot variables created.
-
+        ['pass','ut', 'ksc_azm', 'ksc_elv', 'ksc_dis', 'ksc_ang', 'syo_azm', 'syo_elv', 'syo_dis', 'syo_ang',
+            'pra_azm', 'pra_elv', 'pra_dis', 'pra_ang', 'esr_azm', 'esr_elv', 'esr_dis', 'esr_ang', 'gclat','gclon',
+            'inv', 'fmlat', 'mlat', 'mlt', 'bmdl_x', 'bmdl_y', 'bmdl_z', 'xxlon_sc', 'xxlat_sc', 'aheight','lsun',
+            's_direc_x', 's_direc_y', 's_direc_z', 'sc_pos_x', 'sc_pos_y', 'sc_pos_z', 'sc_vel_x', 'sc_vel_y', 'sc_vel_z']
     """
     files = load(instrument='orb', trange=trange, suffix=suffix, get_support_data=get_support_data, varformat=varformat, varnames=varnames, downloadonly=downloadonly, notplot=notplot, time_clip=time_clip, no_update=no_update)
 
@@ -303,8 +306,8 @@ def orb_postprocessing(files):
     store_data(prefix + 'gdlon', data={'x': unix_times, 'y': np.float64(data['gclon'])})
     store_data(prefix + 'inv', data={'x': unix_times, 'y': np.float64(data['inv'])})
     store_data(prefix + 'fmlat', data={'x': unix_times, 'y': np.float64(data['fmlat'])})
-    store_data(prefix + 'MLT', data={'x': unix_times, 'y': np.float64(data['mlt'])})
-    store_data(prefix + 'ALT', data={'x': unix_times, 'y': np.float64(data['aheight'])})
+    store_data(prefix + 'mlt', data={'x': unix_times, 'y': np.float64(data['mlt'])})
+    store_data(prefix + 'alt', data={'x': unix_times, 'y': np.float64(data['aheight'])})
     store_data(prefix + 'gcalt', data={'x': unix_times, 'y': rr / km_in_re})
     store_data(prefix + 'gclat', data={'x': unix_times, 'y': th})
     store_data(prefix + 'gclon', data={'x': unix_times, 'y': ph})
@@ -319,10 +322,10 @@ def orb_postprocessing(files):
     options(prefix + 'inv', 'ysubtitle', '(120km altitude) [deg]')
     options(prefix + 'fmlat', 'ytitle', 'Geomagnetic Latitude of the magnetic footprint')
     options(prefix + 'fmlat', 'ysubtitle', '(120km altitude) [deg]')
-    options(prefix + 'MLT', 'ytitle', 'Magnetic Local Time')
-    options(prefix + 'MLT', 'ysubtitle', '[hours]')
-    options(prefix + 'ALT', 'ytitle', 'Altitude')
-    options(prefix + 'ALT', 'ysubtitle', '[km]')
+    options(prefix + 'mlt', 'ytitle', 'Magnetic Local Time')
+    options(prefix + 'mlt', 'ysubtitle', '[hours]')
+    options(prefix + 'alt', 'ytitle', 'Altitude')
+    options(prefix + 'alt', 'ysubtitle', '[km]')
     options(prefix + 'gcalt', 'ytitle', 'Geocentric Altitude')
     options(prefix + 'gcalt', 'ysubtitle', '[Re]')
     options(prefix + 'gclat', 'ytitle', 'Geocentric Latitude')
@@ -335,8 +338,8 @@ def orb_postprocessing(files):
             prefix + 'gdlon',
             prefix + 'inv',
             prefix + 'fmlat',
-            prefix + 'MLT',
-            prefix + 'ALT',
+            prefix + 'mlt',
+            prefix + 'alt',
             prefix + 'gcalt',
             prefix + 'gclat',
             prefix + 'gclon']
