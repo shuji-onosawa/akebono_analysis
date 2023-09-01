@@ -1,7 +1,8 @@
-from calc_pwr_matrix_angle_vs_freq import make_wave_mgf_dataset, make_1ch_Epwr_thresholded_by_max_ds, make_1ch_Bpwr_thresholded_by_max_ds
+from calc_pwr_matrix_angle_vs_freq import make_wave_mgf_dataset
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+from utilities import find_zero_cross_idx
 
 # input
 date = '1990-2-11'
@@ -18,9 +19,18 @@ output_dir = '../plots/Ishigaya_events/'+date+'/'
 os.makedirs(output_dir, exist_ok=True)
 
 # calc
+# load data
 wave_mgf_dataset = make_wave_mgf_dataset(date, mca_datatype='pwr')
 sub_dataset = wave_mgf_dataset.sel(Epoch=slice(start_time, end_time))
 
+angle_b0_Ey_ary = sub_dataset['angle_b0_Ey'].values
+Epwr_ary = sub_dataset['akb_mca_Emax_pwr'].values
+
+angle_b0_sBy_ary = sub_dataset['angle_b0_sBy'].values
+angle_b0_Bloop_ary = sub_dataset['angle_b0_Bloop'].values
+Bpwr_ary = sub_dataset['akb_mca_Bmax_pwr'].values
+
+# initialize lists
 Epwr_list = []
 Bpwr_list = []
 angle_b0_Ey_list = []
@@ -34,65 +44,35 @@ std_Epwr_list = []
 std_Bpwr_list = []
 std_Bloop_list = []
 
-for ch in range(12):
-    Epwr_over0p3_ds = make_1ch_Epwr_thresholded_by_max_ds(sub_dataset, ch, threshold_percent)
-    Bpwr_over0p3_ds = make_1ch_Bpwr_thresholded_by_max_ds(sub_dataset, ch, threshold_percent)
+# find half spin indices ranges for E field
+E_pos_to_neg_idx, E_neg_to_pos_idx = find_zero_cross_idx(angle_b0_Ey_ary)
+half_spin_idx_range_list_E = []
 
-    angle_b0_Ey = Epwr_over0p3_ds['angle_b0_Ey'].values
-    angle_b0_sBy = Bpwr_over0p3_ds['angle_b0_sBy'].values
-    angle_b0_Bloop = Bpwr_over0p3_ds['angle_b0_Bloop'].values
-    angle_b0_Ey = np.where(angle_b0_Ey < 0, angle_b0_Ey+180, angle_b0_Ey)
-    angle_b0_sBy = np.where(angle_b0_sBy < 0, angle_b0_sBy+180, angle_b0_sBy)
-    angle_b0_Bloop = np.where(angle_b0_Bloop < 0,
-                              angle_b0_Bloop+180, angle_b0_Bloop)
+if E_pos_to_neg_idx[0] > E_neg_to_pos_idx[0]:
+    for i in range(len(E_pos_to_neg_idx)-1):
+        half_spin_idx_range_list_E.append([E_neg_to_pos_idx[i]+1, E_pos_to_neg_idx[i]+1])
+        half_spin_idx_range_list_E.append([E_pos_to_neg_idx[i]+1, E_neg_to_pos_idx[i+1]+1])
+else:
+    for i in range(len(E_pos_to_neg_idx)):
+        half_spin_idx_range_list_E.append([E_pos_to_neg_idx[i]+1, E_neg_to_pos_idx[i]+1])
+        half_spin_idx_range_list_E.append([E_neg_to_pos_idx[i]+1, E_pos_to_neg_idx[i+1]+1])
 
-    Epwr_list.append(Epwr_over0p3_ds['akb_mca_Emax_pwr'].values)
-    Bpwr_list.append(Bpwr_over0p3_ds['akb_mca_Bmax_pwr'].values)
-    angle_b0_Ey_list.append(angle_b0_Ey)
-    angle_b0_sBy_list.append(angle_b0_sBy)
-    angle_b0_Bloop_list.append(angle_b0_Bloop)
+# find half spin indices ranges for M field
+B_pos_to_neg_idx, B_neg_to_pos_idx = find_zero_cross_idx(angle_b0_sBy_ary)
+half_spin_idx_range_list_B = []
 
-    # calc mean and std for each freq and angle bin
-    mean_Epwr_list_perch = []
-    mean_Bpwr_list_perch = []
-    mean_Bloop_list_perch = []
-    std_Epwr_list_perch = []
-    std_Bpwr_list_perch = []
-    std_Bloop_list_perch = []
+if B_pos_to_neg_idx[0] > B_neg_to_pos_idx[0]:
+    for i in range(len(B_pos_to_neg_idx)-1):
+        half_spin_idx_range_list_B.append([B_neg_to_pos_idx[i]+1, B_pos_to_neg_idx[i]+1])
+        half_spin_idx_range_list_B.append([B_pos_to_neg_idx[i]+1, B_neg_to_pos_idx[i+1]+1])
+else:
+    for i in range(len(B_pos_to_neg_idx)):
+        half_spin_idx_range_list_B.append([B_pos_to_neg_idx[i]+1, B_neg_to_pos_idx[i]+1])
+        half_spin_idx_range_list_B.append([B_neg_to_pos_idx[i]+1, B_pos_to_neg_idx[i+1]+1])
 
-    for angle_idx in range(len(angle_list)-1):
-        condition_pos_Ey = (angle_b0_Ey >= angle_list[angle_idx]) &\
-                           (angle_b0_Ey < angle_list[angle_idx+1])
-        condition_pos_sBy = (angle_b0_sBy >= angle_list[angle_idx]) &\
-                            (angle_b0_sBy < angle_list[angle_idx+1])
-        condition_pos_Bloop = (angle_b0_Bloop >= angle_list[angle_idx]) &\
-                              (angle_b0_Bloop < angle_list[angle_idx+1])
-
-        Epwr_in_angle = Epwr_over0p3_ds['akb_mca_Emax_pwr'].values[condition_pos_Ey]
-        Bpwr_in_angle = Bpwr_over0p3_ds['akb_mca_Bmax_pwr'].values[condition_pos_sBy]
-        Bloop_in_angle = Bpwr_over0p3_ds['akb_mca_Bmax_pwr'].values[condition_pos_Bloop]
-
-        mean_Epwr_in_angle = np.nanmean(Epwr_in_angle)
-        mean_Bpwr_in_agnle = np.nanmean(Bpwr_in_angle)
-        mean_Bloop_in_angle = np.nanmean(Bloop_in_angle)
-        std_Epwr_in_angle = np.nanstd(Epwr_in_angle)
-        std_Bpwr_in_angle = np.nanstd(Bpwr_in_angle)
-        std_Bloop_in_angle = np.nanstd(Bloop_in_angle)
-
-        mean_Epwr_list_perch.append(mean_Epwr_in_angle)
-        mean_Bpwr_list_perch.append(mean_Bpwr_in_agnle)
-        mean_Bloop_list_perch.append(mean_Bloop_in_angle)
-        std_Epwr_list_perch.append(std_Epwr_in_angle)
-        std_Bpwr_list_perch.append(std_Bpwr_in_angle)
-        std_Bloop_list_perch.append(std_Bloop_in_angle)
-
-    mean_Epwr_list.append(mean_Epwr_list_perch)
-    mean_Bpwr_list.append(mean_Bpwr_list_perch)
-    mean_Bloop_list.append(mean_Bloop_list_perch)
-    std_Epwr_list.append(std_Epwr_list_perch)
-    std_Bpwr_list.append(std_Bpwr_list_perch)
-    std_Bloop_list.append(std_Bloop_list_perch)
-
+# calc Epwr max and min for each channel
+Epwr_max_ary = sub_dataset['akb_mca_Emax_pwr'].max(dim='Epoch').values
+Epwr_min_ary = sub_dataset['akb_mca_Emax_pwr'].min(dim='Epoch').values
 
 # plot
 # E field

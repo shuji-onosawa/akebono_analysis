@@ -1,8 +1,6 @@
 import pytplot
 from store_high_time_res_spectrum_data import store_mca_high_time_res_data, get_mgf_with_angle_xry
-import pyspedas
 import numpy as np
-from utilities import get_idx_of_nearest_value, get_data_in_angle_range
 import xarray as xr
 
 
