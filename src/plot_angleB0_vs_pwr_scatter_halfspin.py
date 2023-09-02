@@ -53,7 +53,7 @@ if E_pos_to_neg_idx[0] > E_neg_to_pos_idx[0]:
         half_spin_idx_range_list_E.append([E_neg_to_pos_idx[i]+1, E_pos_to_neg_idx[i]+1])
         half_spin_idx_range_list_E.append([E_pos_to_neg_idx[i]+1, E_neg_to_pos_idx[i+1]+1])
 else:
-    for i in range(len(E_pos_to_neg_idx)):
+    for i in range(len(E_pos_to_neg_idx)-1):
         half_spin_idx_range_list_E.append([E_pos_to_neg_idx[i]+1, E_neg_to_pos_idx[i]+1])
         half_spin_idx_range_list_E.append([E_neg_to_pos_idx[i]+1, E_pos_to_neg_idx[i+1]+1])
 
@@ -66,14 +66,62 @@ if B_pos_to_neg_idx[0] > B_neg_to_pos_idx[0]:
         half_spin_idx_range_list_B.append([B_neg_to_pos_idx[i]+1, B_pos_to_neg_idx[i]+1])
         half_spin_idx_range_list_B.append([B_pos_to_neg_idx[i]+1, B_neg_to_pos_idx[i+1]+1])
 else:
-    for i in range(len(B_pos_to_neg_idx)):
+    for i in range(len(B_pos_to_neg_idx)-1):
         half_spin_idx_range_list_B.append([B_pos_to_neg_idx[i]+1, B_neg_to_pos_idx[i]+1])
         half_spin_idx_range_list_B.append([B_neg_to_pos_idx[i]+1, B_pos_to_neg_idx[i+1]+1])
 
+Bl_pos_to_neg_idx, Bl_neg_to_pos_idx = find_zero_cross_idx(angle_b0_Bloop_ary)
+half_spin_idx_range_list_Bl = []
+
+if Bl_pos_to_neg_idx[0] > Bl_neg_to_pos_idx[0]:
+    for i in range(len(Bl_pos_to_neg_idx)-1):
+        half_spin_idx_range_list_Bl.append([Bl_neg_to_pos_idx[i]+1, Bl_pos_to_neg_idx[i]+1])
+        half_spin_idx_range_list_Bl.append([Bl_pos_to_neg_idx[i]+1, Bl_neg_to_pos_idx[i+1]+1])
+else:
+    for i in range(len(Bl_pos_to_neg_idx)-1):
+        half_spin_idx_range_list_Bl.append([Bl_pos_to_neg_idx[i]+1, Bl_neg_to_pos_idx[i]+1])
+        half_spin_idx_range_list_Bl.append([Bl_neg_to_pos_idx[i]+1, Bl_pos_to_neg_idx[i+1]+1])
+
 # calc Epwr max and min for each channel
 Epwr_max_ary = sub_dataset['akb_mca_Emax_pwr'].max(dim='Epoch').values
-Epwr_min_ary = sub_dataset['akb_mca_Emax_pwr'].min(dim='Epoch').values
+Bpwr_max_ary = sub_dataset['akb_mca_Bmax_pwr'].max(dim='Epoch').values 
 
+# judge whether to use half spin or not
+for ch in range(12):
+    # initialize lists
+    Epwr_list.append([])
+    angle_b0_Ey_list.append([])
+    for i in range(len(half_spin_idx_range_list_E)):
+        # if there are any values over threshold_percent*Epwr_max_ary[ch], use half spin
+        if np.nanmax(Epwr_ary[half_spin_idx_range_list_E[i][0]:half_spin_idx_range_list_E[i][1], ch]) > threshold_percent*Epwr_max_ary[ch]:
+            Epwr_list[ch]+= Epwr_ary[half_spin_idx_range_list_E[i][0]:half_spin_idx_range_list_E[i][1], ch].tolist()
+            angle_b0_Ey_list[ch]+= angle_b0_Ey_ary[half_spin_idx_range_list_E[i][0]:half_spin_idx_range_list_E[i][1], ch].tolist()
+
+for ch in range(12):
+    # initialize lists
+    Bpwr_list.append([])
+    angle_b0_sBy_list.append([])
+    angle_b0_Bloop_list.append([])
+    if ch < 10:
+        for i in range(len(half_spin_idx_range_list_B)):
+            # if there are any values over threshold_percent*Bpwr_max_ary[ch], use half spin
+            if np.nanmax(Bpwr_ary[half_spin_idx_range_list_B[i][0]:half_spin_idx_range_list_B[i][1], ch]) > threshold_percent*Bpwr_max_ary[ch]:
+                Bpwr_list[ch]+= Bpwr_ary[half_spin_idx_range_list_B[i][0]:half_spin_idx_range_list_B[i][1], ch].tolist()
+                angle_b0_sBy_list[ch]+= angle_b0_sBy_ary[half_spin_idx_range_list_B[i][0]:half_spin_idx_range_list_B[i][1], ch].tolist()
+    if ch >= 10:
+        for i in range(len(half_spin_idx_range_list_Bl)):
+            # if there are any values over threshold_percent*Bpwr_max_ary[ch], use half spin
+            if np.nanmax(Bpwr_ary[half_spin_idx_range_list_Bl[i][0]:half_spin_idx_range_list_Bl[i][1], ch]) > threshold_percent*Bpwr_max_ary[ch]:
+                Bpwr_list[ch]+= Bpwr_ary[half_spin_idx_range_list_Bl[i][0]:half_spin_idx_range_list_Bl[i][1], ch].tolist()
+                angle_b0_Bloop_list[ch]+= angle_b0_Bloop_ary[half_spin_idx_range_list_Bl[i][0]:half_spin_idx_range_list_Bl[i][1], ch].tolist()
+
+angle_b0_sBy_list[10] = angle_b0_Bloop_list[10]
+angle_b0_sBy_list[11] = angle_b0_Bloop_list[11]
+
+angle_b0_B_list = angle_b0_sBy_list
+
+
+'''
 # plot
 # E field
 # scatter plot
@@ -218,3 +266,4 @@ for j in range(2):
 fig.suptitle('Normarized mean B over {threshold_percent}% of max vs angle'.format(threshold_percent=threshold_percent))
 plt.tight_layout()
 plt.savefig(output_dir+'Bpwr_vs_angle_mean_normalized.jpeg', dpi=300)
+'''
