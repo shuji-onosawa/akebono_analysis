@@ -1,6 +1,6 @@
 # logs of changes by myself in files in pytplot module
-## MPLPlotter>tplot.py
-* adjust positions of added x-axes 
+## MPLPlotter/tplot.py
+* adjust positions of added x-axes
 
 before
 ```python
@@ -35,14 +35,32 @@ after
 
 # fig.subplots_adjust(bottom=0.05+len(var_label)*0.1)
 ```
+* apply horizontal bars
+```python
+    # apply any vertical an horizontal bars
+    if pytplot.data_quants[variable].attrs['plot_options'].get('time_bar') is not None:
+        time_bars = pytplot.data_quants[variable].attrs['plot_options']['time_bar']
 
-options.py
+        for time_bar in time_bars:
+            if time_bar['dimension'] == 'height':
+                this_axis.axvline(x=datetime.fromtimestamp(time_bar['location'], tz=timezone.utc),
+                    color=np.array(time_bar.get('line_color'))/256.0, lw=time_bar.get('line_width'))
+            if time_bar['dimension'] == 'width':
+                this_axis.axhline(y=time_bar['location'],
+                    color=np.array(time_bar.get('line_color'))/256.0, lw=time_bar.get('line_width'))
+```
+
+## options.py
+```python
     if(value == 6 or value == 'none'):
         pytplot.data_quants[i].attrs['plot_options']['line_opt']['visible'] = False
 
 if option == 'char_size':
 pytplot.data_quants[i].attrs['plot_options']['extras']['char_size'] = value
+```
+
 ->
+```python
     if(value == 6 or value == 'none'):
         pytplot.data_quants[i].attrs['plot_options']['line_opt']['visible'] = False
 
@@ -51,3 +69,4 @@ if option == 'marker':
 
 if option == 'char_size':
 pytplot.data_quants[i].attrs['plot_options']['extras']['char_size'] = value
+```
