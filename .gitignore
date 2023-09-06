@@ -6,5 +6,5 @@ execute/
 .python-version
 src/generate_commit_message.py
 src/__pycache__/
-src/akebono/__pycache__/
+src/akebono/__pycache__/*.pyc
 *.pyc
