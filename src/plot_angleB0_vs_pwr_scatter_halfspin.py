@@ -13,7 +13,7 @@ freq_label = ['3.16 Hz', '5.62 Hz', '10 Hz', '17.8 Hz', '31.6 Hz', '56.2 Hz', '1
               '178 Hz', '316 Hz', '562 Hz', '1 kHz', '1.78 kHz']
 angle_list = [0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5, 180]
 angle_label_list = [11.25, 33.75, 56.25, 78.75, 101.25, 123.75, 146.25, 168.75]
-threshold_percent = 0.5
+threshold_percent = 0.3
 # output
 output_dir = '../plots/Ishigaya_events/'+date+'/'
 os.makedirs(output_dir, exist_ok=True)

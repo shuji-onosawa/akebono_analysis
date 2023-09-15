@@ -1,4 +1,4 @@
-#3次元内のプラズマ波動の偏波面をプロットするプログラム
+# 3次元内のプラズマ波動の偏波面をプロットするプログラム
 
 import numpy as np
 import matplotlib.pyplot as plt

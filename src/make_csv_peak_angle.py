@@ -75,7 +75,7 @@ def get_peak_angle(theta, phi, wna, freq, mode):
 # wna, phi を変えて、theta=123.75, freq=178, mode='r'で計算して、csvに保存する
 # csvには、(Emax_angle, Bmax_angle)を保存する
 with open('../execute/pyEmax_Bmax_angle.csv', 'w') as f:
-    for wna in np.linspace(0, 90, 10, dtype=int):
+    for wna in np.linspace(0, 180, 10, dtype=int):
         tuple_list = []
         for phi in np.linspace(0, 180, 19, dtype=int):
             theta = 123.75
