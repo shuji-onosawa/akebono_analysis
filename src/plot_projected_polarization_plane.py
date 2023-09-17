@@ -7,7 +7,8 @@ import os
 def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     """
     theta: angle between spin plane normal vector and z axis
-    phi: angle between projection vector of spin plane normal vector on x-y plane and x axis
+    phi: angle between projection vector of spin plane normal vector
+    on x-y plane and x axis
     wna: wave normal angle
     freq: wave frequency
     mode: 'l' or 'r'
@@ -21,9 +22,10 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     spin_plane_unit_vec1 = np.array([np.cos(theta_rad)*np.cos(phi_rad),
                                     np.cos(theta_rad)*np.sin(phi_rad),
                                     -np.sin(theta_rad)])
-    spin_plane_unit_vec2 = np.cross(spin_plane_normal_vec, spin_plane_unit_vec1)
+    spin_plane_unit_vec2 = np.cross(spin_plane_normal_vec,
+                                    spin_plane_unit_vec1)
 
-    phase = np.linspace(0, 2*np.pi, 100)
+    phase = np.linspace(0, 2*np.pi, 1000)
 
     antennna_vec = np.array([np.cos(phase)*spin_plane_unit_vec1[0] + np.sin(phase)*spin_plane_unit_vec2[0],
                             np.cos(phase)*spin_plane_unit_vec1[1] + np.sin(phase)*spin_plane_unit_vec2[1],
@@ -79,7 +81,7 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     Evec_proj_vec = Evec - np.dot(Evec, spin_plane_normal_vec.reshape(3, 1))*spin_plane_normal_vec.reshape(1, 3)
     # calc projection of B field on spin plane
     Bvec_proj_vec = Bvec - np.dot(Bvec, spin_plane_normal_vec.reshape(3, 1))*spin_plane_normal_vec.reshape(1, 3)
-    
+
     ax = fig.add_subplot(222)
     ax.scatter(np.dot(Evec_proj_vec, spin_plane_unit_vec1),
                np.dot(Evec_proj_vec, spin_plane_unit_vec2),
@@ -112,7 +114,7 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     Evec_proj_vec_norm = np.linalg.norm(Evec_proj_vec, axis=1)
     Bvec_proj_vec_norm = np.linalg.norm(Bvec_proj_vec, axis=1)
     # print angle_E_b0 at max E field
-    print(wna, phi)
+    print('wna:', wna, 'phi:', phi)
     print('angle_E_b0 at max E field = '+str(np.rad2deg(angle_E_b0[np.argmax(Evec_proj_vec_norm)])))
     # print angle_B_b0 at max B field
     print('angle_B_b0 at max B field = '+str(np.rad2deg(angle_B_b0[np.argmax(Bvec_proj_vec_norm)])))
@@ -124,12 +126,12 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     ax.set_xlim(0, 180)
     ax.set_ylim(0, 1.1)
     ax.vlines([-90, 90], 0, 1.1, color='k', linestyle='dashed')
-    ax.vlines([112.5, 135.0], 0, 1.1, color='r', linestyle='dashed')
-    ax.vlines([45.0, 67.5], 0, 1.1, color='b', linestyle='dashed')
+    # ax.vlines([112.5, 135.0], 0, 1.1, color='r', linestyle='dashed')
+    ax.vlines([90, 112.5], 0, 1.1, color='b', linestyle='dashed')
 
     ax.set_xlabel('angle')
     ax.set_ylabel('power')
-    ax.set_xticks([0, 90, 180])
+    ax.set_xticks([0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5, 180])
     # legend position
     ax.legend(loc='lower right')
     plt.show
@@ -143,9 +145,9 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     plt.close()
 
 
-for wna in np.linspace(0, 90, 10, dtype=int):
+for wna in np.linspace(0, 180, 19, dtype=int):
     for phi in np.linspace(0, 180, 19, dtype=int):
         theta = 123.75
         wna = wna
-        freq = 178
-        plot_projected_polarization_plane(theta, phi, wna, freq, mode='r')
+        freq = 3.16
+        plot_projected_polarization_plane(theta, phi, wna, freq, mode='l')

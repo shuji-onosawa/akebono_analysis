@@ -7,6 +7,7 @@ import os
 wave_normal_angle = 60
 omega_s = pp.wlh
 freq = np.abs(omega_s['value'])*np.logspace(-3, 1, 10000)
+save_dir = '../plots/Ishigaya_events/dispersion_relation/'
 
 n_L, n_R, S, D, P = calc_dr.calc_dispersion_relation(freq, wave_normal_angle)
 # idx = calc_dr.get_crossover_freq_idx(D, theta)
@@ -44,10 +45,9 @@ axs.set_ylabel(r'$frequency [Hz]$')
 
 plt.legend()
 # make directory if not exist
-if not os.path.exists('../plots/dispersion_relation'):
-    os.makedirs('../plots/dispersion_relation')
-plt.savefig('../plots/dispersion_relation/refraction_index_wna_' +
-            str(wave_normal_angle)+'.png')
+if not os.path.exists(save_dir):
+    os.makedirs(save_dir)
+plt.savefig(save_dir+'/refraction_index_wna_' + str(wave_normal_angle)+'.png')
 plt.show()
 '''
 fig, axs = plt.subplots(nrows=1, ncols=1, figsize=[16, 8])
