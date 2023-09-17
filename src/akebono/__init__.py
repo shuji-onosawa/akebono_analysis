@@ -286,8 +286,9 @@ def orb_postprocessing(files):
             's_direc_x', 's_direc_y', 's_direc_z', 'sc_pos_x', 'sc_pos_y', 'sc_pos_z', 'sc_vel_x', 'sc_vel_y', 'sc_vel_z']
 
     data = load_csv_file(files, cols=cols)
-    values = data.to_numpy()
-    unix_times = time_double([date[2:4] + '-' + date[4:6] + '-' + date[0:2] + '/' + date[6:8] + ':' + date[8:10] + ':' + date[10:12] for date in data['ut']])
+    original_time = data['ut'].to_numpy()
+    converted_time = convert_orb_time(original_time)
+    unix_times = time_double(converted_time)
 
     km_in_re = 6374.4
 
@@ -343,6 +344,28 @@ def orb_postprocessing(files):
             prefix + 'gcalt',
             prefix + 'gclat',
             prefix + 'gclon']
+
+
+def convert_orb_time(original_time):
+    """
+    Convert the time format of the orb data
+    original_time: str or numpy.ndarray of str
+        The time in the original format. The format is 'yyMMddHHmmss'
+
+    Returns
+    ----------
+        The time in the format 'yyyy-mm-dd/hh:mm:ss'
+    """
+    if isinstance(original_time, str):
+        if 89 <= int(original_time[0:2]) <= 99:
+            return '19' + original_time[0:2] + '-' + original_time[2:4] + '-' + original_time[4:6] + '/' + original_time[6:8] + ':' + original_time[8:10] + ':' + original_time[10:12]
+        else:
+            return '20' + original_time[0:2] + '-' + original_time[2:4] + '-' + original_time[4:6] + '/' + original_time[6:8] + ':' + original_time[8:10] + ':' + original_time[10:12]
+    elif isinstance(original_time, np.ndarray):
+        if 89 <= int(original_time[0][0:2]) <= 99:
+            return np.array(['19' + time[0:2] + '-' + time[2:4] + '-' + time[4:6] + '/' + time[6:8] + ':' + time[8:10] + ':' + time[10:12] for time in original_time])
+        else:
+            return np.array(['20' + time[0:2] + '-' + time[2:4] + '-' + time[4:6] + '/' + time[6:8] + ':' + time[8:10] + ':' + time[10:12] for time in original_time])
 
 
 def load_csv_file(filenames, cols=None):

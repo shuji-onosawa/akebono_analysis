@@ -6,6 +6,27 @@ from calc_pwr_matrix_angle_vs_freq import make_wave_mgf_dataset
 from utilities import get_next_date
 import akebono
 
+
+def get_plot_time_range_list(ilat_mlt_ds, target_mlt_range, target_ilat_range):
+    '''
+    時刻データの配列とMLT、ILATの範囲を指定して、
+    プロットする時刻の範囲を取得する関数
+    ilat_mlt_ds: 時刻, ilat, mltのdataset. 1日分のデータを想定
+    target_mlt_range: プロットするMLTの範囲 [下限値, 上限値] list
+    target_ilat_range: プロットするILATの範囲 [下限値, 上限値] list
+    return: プロットする時刻の範囲のリスト [開始時刻, 終了時刻] list
+    '''
+    # 条件を指定してデータをフィルタリング
+    filtered_data = ilat_mlt_ds.where((ilat_mlt_ds['akb_orb_inv'] >= target_ilat_range[0]) &
+                                      (ilat_mlt_ds['akb_orb_inv'] <= target_ilat_range[1]) &
+                                      (ilat_mlt_ds['akb_orb_MLT'] >= target_mlt_range[0]) &
+                                      (ilat_mlt_ds['akb_orb_MLT'] <= target_mlt_range[1]),
+                                      drop=True)
+    # plotのstart_timeとend_timeを取得. start_timeとend_timeの差分は5分
+    start_times = filtered_data['time'].values[::5]  # 5分間隔で取得
+    end_times = start_times + np.timedelta64(5, 'm')  # 5分後の時刻を取得
+
+    return start_times, end_times
 date = '1990-2-1'
 next_date = get_next_date(date)
 
