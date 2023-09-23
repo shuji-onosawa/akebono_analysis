@@ -2,30 +2,26 @@ import numpy as np
 from calc_dispersion_in_cold_plasma import calc_dispersion_relation, calc_amp_ratio
 import csv
 
+
 def get_peak_angle(theta, phi, wna, freq, mode):
     theta_rad = np.deg2rad(theta)
     phi_rad = np.deg2rad(phi)
 
     spin_plane_normal_vec = np.array([np.sin(theta_rad)*np.cos(phi_rad),
-                                        np.sin(theta_rad)*np.sin(phi_rad),
-                                        np.cos(theta_rad)])
+                                      np.sin(theta_rad)*np.sin(phi_rad),
+                                      np.cos(theta_rad)])
     spin_plane_unit_vec1 = np.array([np.cos(theta_rad)*np.cos(phi_rad),
                                     np.cos(theta_rad)*np.sin(phi_rad),
                                     -np.sin(theta_rad)])
     spin_plane_unit_vec2 = np.cross(spin_plane_normal_vec, spin_plane_unit_vec1)
 
-    phase = np.linspace(0, 2*np.pi, 100)
-
-    antennna_vec = np.array([np.cos(phase)*spin_plane_unit_vec1[0] + np.sin(phase)*spin_plane_unit_vec2[0],
-                            np.cos(phase)*spin_plane_unit_vec1[1] + np.sin(phase)*spin_plane_unit_vec2[1],
-                            np.cos(phase)*spin_plane_unit_vec1[2] + np.sin(phase)*spin_plane_unit_vec2[2]])
+    phase = np.linspace(0, 2*np.pi, 1000)
 
     # wave polarization plane
     wna = wna
     freq = freq  # Hz
     angle_freq = 2*np.pi*freq
 
-    k_vec = np.array([np.sin(wna*np.pi/180), 0, np.cos(wna*np.pi/180)])
     n_L, n_R, S, D, P = calc_dispersion_relation(angle_freq, wna)
     if mode == 'l':
         # left hand circular polarization
@@ -34,14 +30,12 @@ def get_peak_angle(theta, phi, wna, freq, mode):
         # right hand circular polarization
         Ey_Ex, Ez_Ex, By_Bx, Bz_Bx, E_cB = calc_amp_ratio(n_R, S, D, P, wna)
 
-    # projection of wave polarization plane on spin plane
     Evec = np.array([np.cos(phase), -Ey_Ex*np.sin(phase), Ez_Ex*np.cos(phase)]).T
     Bvec = np.array([np.cos(phase), -By_Bx*np.sin(phase), Bz_Bx*np.cos(phase)]).T
     # calc projection of E field on spin plane
     Evec_proj_vec = Evec - np.dot(Evec, spin_plane_normal_vec.reshape(3, 1))*spin_plane_normal_vec.reshape(1, 3)
     # calc projection of B field on spin plane
     Bvec_proj_vec = Bvec - np.dot(Bvec, spin_plane_normal_vec.reshape(3, 1))*spin_plane_normal_vec.reshape(1, 3)
-
 
     # angle between z axis and field vectors
     # calc angle between z axis and E field vectors
@@ -72,17 +66,22 @@ def get_peak_angle(theta, phi, wna, freq, mode):
     # 第2位を四捨五入した値を返す
     return (round(Emax_angle[0], 1), round(Bmax_angle[0], 1))
 
+
 # wna, phi を変えて、theta=123.75, freq=178, mode='r'で計算して、csvに保存する
 # csvには、(Emax_angle, Bmax_angle)を保存する
+wna_list = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
+phi_list = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180]
 with open('../execute/pyEmax_Bmax_angle.csv', 'w') as f:
-    for wna in np.linspace(0, 180, 10, dtype=int):
+    writer = csv.writer(f)
+    writer.writerow([""]+phi_list)
+    for wna in wna_list:
         tuple_list = []
-        for phi in np.linspace(0, 180, 19, dtype=int):
+        for phi in phi_list:
             theta = 123.75
             wna = wna
             freq = 178
             mode = 'r'
             angle_tuple = get_peak_angle(theta, phi, wna, freq, mode)
             tuple_list.append(angle_tuple)
-        writer = csv.writer(f)
-        writer.writerow(tuple_list)
+
+        writer.writerow([wna]+tuple_list)
