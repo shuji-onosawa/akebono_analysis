@@ -73,7 +73,7 @@ def calc_dispersion_relation(w, theta):
             n_plus[R_mode_plus_idx[0]], n_minus[R_mode_minus_idx[0]]
 
         return n_L, n_R, S, D, P
-    
+
     # if w is float, n_L and n_R are float, too.
     else:
         polarization_plus = - D / (S - n_plus)
@@ -96,6 +96,7 @@ def calc_amp_ratio(n, S, D, P, theta):
     '''
     !!!caution!!!
     n means squared refractive index
+    theta: wave normal angle, 0 - 90 (180) [deg]
     '''
     if theta == 0:
         cos = 1
