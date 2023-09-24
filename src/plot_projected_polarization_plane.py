@@ -145,9 +145,10 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     plt.close()
 
 
-for wna in np.linspace(0, 180, 19, dtype=int):
-    for phi in np.linspace(0, 180, 19, dtype=int):
-        theta = 123.75
-        wna = wna
-        freq = 3.16
-        plot_projected_polarization_plane(theta, phi, wna, freq, mode='l')
+for freq in [3.16, 5.62, 10, 17.8, 31.6, 56.2, 100,178, 316, 562]:
+    for wna in [0, 20, 40, 60, 80, 100, 120, 140, 160, 180]:
+        for phi in np.linspace(0, 180, 19, dtype=int):
+            theta = 123.75
+            wna = wna
+            plot_projected_polarization_plane(theta, phi, wna, freq, mode='l')
+            plot_projected_polarization_plane(theta, phi, wna, freq, mode='r')
