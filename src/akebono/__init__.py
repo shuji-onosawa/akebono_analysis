@@ -4,6 +4,7 @@ import pandas as pd
 from pytplot import store_data, options, get_data, tplot_names
 from pyspedas import time_double
 from pyspedas.cotrans.xyz_to_polar import xyz_to_polar
+from fnmatch import filter
 
 
 def pws(trange=['2012-10-01', '2012-10-02'],
@@ -307,6 +308,7 @@ def orb_postprocessing(files):
     store_data(prefix + 'gdlon', data={'x': unix_times, 'y': np.float64(data['gclon'])})
     store_data(prefix + 'inv', data={'x': unix_times, 'y': np.float64(data['inv'])})
     store_data(prefix + 'fmlat', data={'x': unix_times, 'y': np.float64(data['fmlat'])})
+    store_data(prefix + 'mlat', data={'x': unix_times, 'y': np.float64(data['mlat'])})
     store_data(prefix + 'mlt', data={'x': unix_times, 'y': np.float64(data['mlt'])})
     store_data(prefix + 'alt', data={'x': unix_times, 'y': np.float64(data['aheight'])})
     store_data(prefix + 'gcalt', data={'x': unix_times, 'y': rr / km_in_re})
@@ -323,6 +325,8 @@ def orb_postprocessing(files):
     options(prefix + 'inv', 'ysubtitle', '(120km altitude) [deg]')
     options(prefix + 'fmlat', 'ytitle', 'Geomagnetic Latitude of the magnetic footprint')
     options(prefix + 'fmlat', 'ysubtitle', '(120km altitude) [deg]')
+    options(prefix + 'mlat', 'ytitle', 'Magnetic Latitude of the spacecraft position')
+    options(prefix + 'mlat', 'ysubtitle', '[deg]')
     options(prefix + 'mlt', 'ytitle', 'Magnetic Local Time')
     options(prefix + 'mlt', 'ysubtitle', '[hours]')
     options(prefix + 'alt', 'ytitle', 'Altitude')
@@ -334,16 +338,9 @@ def orb_postprocessing(files):
     options(prefix + 'gclon', 'ytitle', 'Geocentric Longitude')
     options(prefix + 'gclon', 'ysubtitle', '[deg]')
 
-    return [prefix + 'geo',
-            prefix + 'gdlat',
-            prefix + 'gdlon',
-            prefix + 'inv',
-            prefix + 'fmlat',
-            prefix + 'mlt',
-            prefix + 'alt',
-            prefix + 'gcalt',
-            prefix + 'gclat',
-            prefix + 'gclon']
+    stored_names = filter(tplot_names(),
+                          prefix_project + prefix_descriptor + '*')
+    return stored_names
 
 
 def convert_orb_time(original_time):

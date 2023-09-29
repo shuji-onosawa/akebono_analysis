@@ -109,6 +109,33 @@ def preprocess_mgf_angle(wave_mgf_ds: xr.Dataset):
     pytplot.options('angle_b0_B', 'color', ['k', 'r'])
 
 
+def store_gyrofreq(date: str):
+    '''
+    akebonoの軌道データに含まれる磁場モデルの磁場の大きさからgyrofrequencyを計算してtplot変数として保存する関数
+    '''
+    # 定数
+    q = 1.60217662e-19  # 電気素量
+    me = 9.10938356e-31  # 電子の質量
+    mh = 1.6726219e-27  # 水素原子の質量
+    mhe = 6.6464764e-27  # ヘリウム原子の質量
+    mo = 2.7e-26  # 酸素原子の質量
+
+    # データを取得
+    next_date = get_next_date(date)
+    akebono.orb(trange=[date, next_date])
+    # akebonoの軌道データに含まれる磁場モデルの磁場の大きさを取得
+    bmdl_scaler = pytplot.get_data('akb_orb_bmdl_scaler')
+    bmdl_scaler_ary = bmdl_scaler.y  # 単位はnT
+    bmdl_scaler_ary = bmdl_scaler_ary*1e-9  # 単位をTに変換
+    # gyrofrequencyを計算
+    gyrofreq = bmdl_scaler_ary.reshape(bmdl_scaler_ary.size, 1)*q/np.array([me, mh, mhe, mo])/2/np.pi
+    # tplot変数として保存
+    pytplot.store_data('gyrofreq', data={'x': bmdl_scaler.times, 'y': gyrofreq})
+    pytplot.options('gyrofreq',
+                    opt_dict={'ylog': 1, 'color': ['k', 'r', 'b', 'g'],
+                              'legend_names': ['e', 'H', 'He', 'O']})
+
+
 def plot_mca_w_mgf_1day(date: str):
     '''
     MCAのデータとMGFのデータをプロットする関数
@@ -122,6 +149,7 @@ def plot_mca_w_mgf_1day(date: str):
                                         mca_datatype='pwr')
     preprocess_mgf_angle(wave_mgf_ds)
     akebono.orb(trange=[date, next_date])
+    store_gyrofreq(date)
 
     ilat_ds = pytplot.get_data('akb_orb_inv', xarray=True)
     mlt_ds = pytplot.get_data('akb_orb_mlt', xarray=True)
@@ -151,8 +179,9 @@ def plot_mca_w_mgf_1day(date: str):
         pytplot.tlimit(plot_trange)
         save_path = save_dir+plot_trange[0][:10]+'_'+plot_trange[0][11:13]+plot_trange[0][14:16]
         pytplot.tplot(['akb_mca_Emax_pwr', 'angle_b0_Ey',
-                       'akb_mca_Bmax_pwr', 'angle_b0_B'],
-                      var_label=['akb_orb_alt', 'akb_orb_inv', 'akb_orb_mlt'],
+                       'akb_mca_Bmax_pwr', 'angle_b0_B',
+                       'gyrofreq'],
+                      var_label=['akb_orb_alt', 'akb_orb_mlat', 'akb_orb_mlt'],
                       xsize=14, ysize=10, save_png=save_path, display=False)
 
 
