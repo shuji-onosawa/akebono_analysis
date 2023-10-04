@@ -5,7 +5,8 @@ import xarray as xr
 
 
 def make_wave_mgf_dataset(date: str,
-                          mca_datatype: str):
+                          mca_datatype: str,
+                          del_invalid_data: list = ['off', 'bit rate m', 'sms', 'bdr', 'noisy']):
     # Datasetの作成
     # 欠損値をnanに置き換えた、B0とアンテナ間の角度を含むMGFデータのxarrayを取得する
     mgf_with_angle_dataset = get_mgf_with_angle_xry(date=date)
@@ -14,7 +15,7 @@ def make_wave_mgf_dataset(date: str,
     # MCAのデータをtplot変数にする
     store_mca_high_time_res_data(date=date,
                                  datatype=mca_datatype,
-                                 del_invalid_data=['off', 'bit rate m', 'sms', 'bdr', 'noisy'])
+                                 del_invalid_data=del_invalid_data)
     # MCAのデータを取り出す
     mca_Emax_tvar = pytplot.get_data('akb_mca_Emax_'+mca_datatype)
     mca_Bmax_tvar = pytplot.get_data('akb_mca_Bmax_'+mca_datatype)
