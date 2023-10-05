@@ -136,6 +136,24 @@ def store_gyrofreq(date: str):
                               'legend_names': ['e', 'H', 'He', 'O']})
 
 
+def store_Lvalue(date: str):
+    '''
+    akebonoの軌道データに含まれる不変緯度の値からLvalueを計算してtplot変数として保存する関数
+    '''
+    # データを取得
+    next_date = get_next_date(date)
+    akebono.orb(trange=[date, next_date])
+    # akebonoの軌道データに含まれる不変緯度の値を取得
+    inv = pytplot.get_data('akb_orb_inv')
+    invAry = inv.y
+    # Lvalueを計算
+    Lvalue = 1 / np.cos(np.deg2rad(invAry))**2
+    # tplot変数として保存
+    pytplot.store_data('Lvalue', data={'x': inv.times, 'y': Lvalue})
+    pytplot.options('Lvalue',
+                    opt_dict={'ylable': 'L'})
+
+
 def plot_mca_w_mgf_1day(date: str):
     '''
     MCAのデータとMGFのデータをプロットする関数
@@ -150,6 +168,7 @@ def plot_mca_w_mgf_1day(date: str):
     preprocess_mgf_angle(wave_mgf_ds)
     akebono.orb(trange=[date, next_date])
     store_gyrofreq(date)
+    store_Lvalue(date)
 
     ilat_ds = pytplot.get_data('akb_orb_inv', xarray=True)
     mlt_ds = pytplot.get_data('akb_orb_mlt', xarray=True)
@@ -166,6 +185,11 @@ def plot_mca_w_mgf_1day(date: str):
                                             mlt_range, ilat_range, mlat_range)
 
     # プロット
+    # plotのオプション
+    pytplot.options('angle_b0_Ey',
+                    opt_dict={'marker': '.', 'line_style': None})
+    pytplot.options('angle_b0_B',
+                    opt_dict={'marker': '.', 'line_style': None})
     # save path の設定
     condition_str = 'mlt_'+str(mlt_range[0])+'_'+str(mlt_range[1])+'_ilat_'+str(ilat_range[0])+'_'+str(ilat_range[1])
     save_dir = '../plots/mca_w_mgf/'+date[:4]+'/'+condition_str+'/'
@@ -181,12 +205,12 @@ def plot_mca_w_mgf_1day(date: str):
         pytplot.tplot(['akb_mca_Emax_pwr', 'angle_b0_Ey',
                        'akb_mca_Bmax_pwr', 'angle_b0_B',
                        'gyrofreq'],
-                      var_label=['akb_orb_alt', 'akb_orb_mlat', 'akb_orb_mlt'],
-                      xsize=14, ysize=10, save_png=save_path, display=False)
+                      var_label=['akb_orb_alt', 'akb_orb_L', 'akb_orb_mlt'],
+                      xsize=14, ysize=14, save_png=save_path, display=False)
 
 
 # 1990/2/1 - 1990/2/28のデータをプロット
-date = '1990-02-01'
-while date != '1990-03-01':
+date = '1990-02-12'
+while date != '1990-02-14':
     plot_mca_w_mgf_1day(date)
     date = get_next_date(date)
