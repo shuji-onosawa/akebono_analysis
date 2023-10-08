@@ -88,28 +88,35 @@ def preprocess_mgf_angle(wave_mgf_ds: xr.Dataset):
     angle_b0_sBy = angle_b0_sBy.where(angle_b0_sBy.values > 0, angle_b0_sBy.values+180)
     angle_b0_Bloop = angle_b0_Bloop.where(angle_b0_Bloop.values> 0, angle_b0_Bloop.values+180)
 
-    pytplot.store_data('angle_b0_Ey',
-                       data={'x': angle_b0_Ey['Epoch'].data,
-                             'y': angle_b0_Ey.data})
-    pytplot.store_data('angle_b0_sBy',
-                       data={'x': angle_b0_sBy['Epoch'].data,
-                             'y': angle_b0_sBy.data})
-    pytplot.store_data('angle_b0_Bloop',
-                       data={'x': angle_b0_Bloop['Epoch'].data,
-                             'y': angle_b0_Bloop.data})
+    return angle_b0_Ey, angle_b0_sBy, angle_b0_Bloop
 
-    pytplot.options('angle_b0_Ey', opt_dict={'yrange': [0, 180]})
-    pytplot.options('angle_b0_sBy', opt_dict={'yrange': [0, 180]})
-    pytplot.options('angle_b0_Bloop', opt_dict={'yrange': [0, 180]})
+
+def store_angle_b0(wave_mgf_ds: xr.Dataset):
+    angleB0Ey, angleB0sBy, angleB0Bloop = preprocess_mgf_angle(wave_mgf_ds)
+    pytplot.store_data('angle_b0_Ey',
+                       data={'x': angleB0Ey['Epoch'].data,
+                             'y': angleB0Ey.data})
+    pytplot.store_data('angle_b0_sBy',
+                       data={'x': angleB0sBy['Epoch'].data,
+                             'y': angleB0sBy.data})
+    pytplot.store_data('angle_b0_Bloop',
+                       data={'x': angleB0Bloop['Epoch'].data,
+                             'y': angleB0Bloop.data})
+
+    pytplot.options('angle_b0_Ey',
+                    opt_dict={'yrange': [0, 180], 'color': 'k', 'marker': '.', 'line_style': None})
+    pytplot.options('angle_b0_sBy',
+                    opt_dict={'yrange': [0, 180], 'marker': '.', 'line_style': None})
+    pytplot.options('angle_b0_Bloop',
+                    opt_dict={'yrange': [0, 180], 'marker': '.', 'line_style': None})
     pytplot.timebar(t=90,
                     varname=['angle_b0_Ey', 'angle_b0_sBy', 'angle_b0_Bloop'],
                     databar=True)
-
-    pytplot.store_data('angle_b0_B', data=['angle_b0_sBy', 'angle_b0_Bloop'])
+    pytplot.store_data('angle_b0_B', data=['angle_b0_Bloop', 'angle_b0_sBy'])
     pytplot.options('angle_b0_B', 'color', ['k', 'r'])
 
 
-def store_gyrofreq(date: str):
+def store_gyrofreq():
     '''
     akebonoの軌道データに含まれる磁場モデルの磁場の大きさからgyrofrequencyを計算してtplot変数として保存する関数
     '''
@@ -120,9 +127,6 @@ def store_gyrofreq(date: str):
     mhe = 6.6464764e-27  # ヘリウム原子の質量
     mo = 2.7e-26  # 酸素原子の質量
 
-    # データを取得
-    next_date = get_next_date(date)
-    akebono.orb(trange=[date, next_date])
     # akebonoの軌道データに含まれる磁場モデルの磁場の大きさを取得
     bmdl_scaler = pytplot.get_data('akb_orb_bmdl_scaler')
     bmdl_scaler_ary = bmdl_scaler.y  # 単位はnT
@@ -136,13 +140,10 @@ def store_gyrofreq(date: str):
                               'legend_names': ['e', 'H', 'He', 'O']})
 
 
-def store_Lvalue(date: str):
+def store_Lvalue():
     '''
     akebonoの軌道データに含まれる不変緯度の値からLvalueを計算してtplot変数として保存する関数
     '''
-    # データを取得
-    next_date = get_next_date(date)
-    akebono.orb(trange=[date, next_date])
     # akebonoの軌道データに含まれる不変緯度の値を取得
     inv = pytplot.get_data('akb_orb_inv')
     invAry = inv.y
@@ -165,10 +166,10 @@ def plot_mca_w_mgf_1day(date: str):
     # データを取得、前処理
     wave_mgf_ds = make_wave_mgf_dataset(date=date,
                                         mca_datatype='pwr')
-    preprocess_mgf_angle(wave_mgf_ds)
+    store_angle_b0(wave_mgf_ds)
     akebono.orb(trange=[date, next_date])
-    store_gyrofreq(date)
-    store_Lvalue(date)
+    store_gyrofreq()
+    # store_Lvalue()
 
     ilat_ds = pytplot.get_data('akb_orb_inv', xarray=True)
     mlt_ds = pytplot.get_data('akb_orb_mlt', xarray=True)
@@ -176,20 +177,15 @@ def plot_mca_w_mgf_1day(date: str):
     ilat_mlt_ds = xr.merge([ilat_ds, mlt_ds, mlat_ds])
 
     # MLTとILATの範囲を指定
-    mlt_range = [0, 24]  # MLTの開始値と終了値を指定
-    ilat_range = [-90, 90]  # ILATの開始値と終了値を指定
-    mlat_range = [-10, 10]  # MLATの開始値と終了値を指定
+    mlt_range = [10, 14]  # MLTの開始値と終了値を指定
+    ilat_range = [70, 80]  # ILATの開始値と終了値を指定
+    mlat_range = [-90, 90]  # MLATの開始値と終了値を指定
 
     # プロットする時刻の範囲を取得
     plot_trange_list = get_plot_trange_list(ilat_mlt_ds,
                                             mlt_range, ilat_range, mlat_range)
 
     # プロット
-    # plotのオプション
-    pytplot.options('angle_b0_Ey',
-                    opt_dict={'marker': '.', 'line_style': None})
-    pytplot.options('angle_b0_B',
-                    opt_dict={'marker': '.', 'line_style': None})
     # save path の設定
     condition_str = 'mlt_'+str(mlt_range[0])+'_'+str(mlt_range[1])+'_ilat_'+str(ilat_range[0])+'_'+str(ilat_range[1])
     save_dir = '../plots/mca_w_mgf/'+date[:4]+'/'+condition_str+'/'
@@ -205,12 +201,13 @@ def plot_mca_w_mgf_1day(date: str):
         pytplot.tplot(['akb_mca_Emax_pwr', 'angle_b0_Ey',
                        'akb_mca_Bmax_pwr', 'angle_b0_B',
                        'gyrofreq'],
-                      var_label=['akb_orb_alt', 'akb_orb_L', 'akb_orb_mlt'],
+                      var_label=['akb_orb_alt', 'akb_orb_inv', 'akb_orb_mlt'],
                       xsize=14, ysize=14, save_png=save_path, display=False)
 
 
-# 1990/2/1 - 1990/2/28のデータをプロット
+'''
 date = '1990-02-12'
 while date != '1990-02-14':
     plot_mca_w_mgf_1day(date)
     date = get_next_date(date)
+'''
