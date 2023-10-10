@@ -203,11 +203,3 @@ def plot_mca_w_mgf_1day(date: str):
                        'gyrofreq'],
                       var_label=['akb_orb_alt', 'akb_orb_inv', 'akb_orb_mlt'],
                       xsize=14, ysize=14, save_png=save_path, display=False)
-
-
-'''
-date = '1990-02-12'
-while date != '1990-02-14':
-    plot_mca_w_mgf_1day(date)
-    date = get_next_date(date)
-'''

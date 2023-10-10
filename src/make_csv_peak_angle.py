@@ -4,6 +4,14 @@ import csv
 
 
 def get_peak_angle(theta, phi, wna, freq, mode):
+    """
+    theta: angle between spin plane normal vector and z axis
+    phi: angle between projection vector of spin plane normal vector
+    on x-y plane and x axis
+    wna: wave normal angle
+    freq: wave frequency [Hz]
+    mode: 'l' or 'r'
+    """
     theta_rad = np.deg2rad(theta)
     phi_rad = np.deg2rad(phi)
 
@@ -69,19 +77,21 @@ def get_peak_angle(theta, phi, wna, freq, mode):
 
 # wna, phi を変えて、theta=123.75, freq=178, mode='r'で計算して、csvに保存する
 # csvには、(Emax_angle, Bmax_angle)を保存する
-wna_list = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
+wna_list = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180]
 phi_list = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180]
-with open('../execute/pyEmax_Bmax_angle.csv', 'w') as f:
-    writer = csv.writer(f)
-    writer.writerow([""]+phi_list)
-    for wna in wna_list:
-        tuple_list = []
-        for phi in phi_list:
-            theta = 123.75
-            wna = wna
-            freq = 178
-            mode = 'r'
-            angle_tuple = get_peak_angle(theta, phi, wna, freq, mode)
-            tuple_list.append(angle_tuple)
-
-        writer.writerow([wna]+tuple_list)
+freqList = [3.16, 5.62, 10, 17.8, 31.6, 56.2, 100, 178, 316, 562]
+for freq in freqList:
+    mode = 'r'
+    theta = 123.75
+    saveName = '../execute/pyEmax_Bmax_angle_freq-{}_mode-{}.csv'
+    with open(saveName.format(freq, mode), 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow([""]+phi_list)
+        for wna in wna_list:
+            tuple_list = []
+            for phi in phi_list:
+                wna = wna
+                freq = freq
+                angle_tuple = get_peak_angle(theta, phi, wna, freq, mode)
+                tuple_list.append(angle_tuple)
+            writer.writerow([wna]+tuple_list)

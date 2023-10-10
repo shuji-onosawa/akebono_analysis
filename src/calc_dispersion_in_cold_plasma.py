@@ -54,6 +54,10 @@ def calc_dispersion_relation(w, theta):
     n_plus = (B + F)/(2*A)
     n_minus = (B - F)/(2*A)
 
+    # n_plus, n_minusの負の値をnp.nanに置き換える
+    n_plus = np.where(n_plus < 0, np.nan, n_plus)
+    n_minus = np.where(n_minus < 0, np.nan, n_minus)
+
     # if w is array, n_L and n_R are array, too.
     if type(w) == np.ndarray:
         n_L = np.nan*np.arange(w.size)
