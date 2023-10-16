@@ -80,7 +80,7 @@ def store_mca_high_time_res_data(date: str = '1990-02-25',
                                  datatype: str = 'pwr',
                                  del_invalid_data: list = ['off', 'bit rate m']):
     """
-    高時間分解能のスペクトルデータをtplot変数にする
+    高時間分解能のMCAスペクトルデータをtplot変数にする
     Parameters
     ----------
     date : str, optional
