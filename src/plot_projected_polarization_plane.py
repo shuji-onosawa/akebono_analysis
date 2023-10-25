@@ -22,8 +22,7 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     spin_plane_unit_vec1 = np.array([np.cos(theta_rad)*np.cos(phi_rad),
                                     np.cos(theta_rad)*np.sin(phi_rad),
                                     -np.sin(theta_rad)])
-    spin_plane_unit_vec2 = np.cross(spin_plane_normal_vec,
-                                    spin_plane_unit_vec1)
+    spin_plane_unit_vec2 = np.array([-np.sin(phi_rad), np.cos(phi_rad), 0])
 
     phase = np.linspace(0, 2*np.pi, 1000)
 
