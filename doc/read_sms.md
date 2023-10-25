@@ -19,21 +19,21 @@ Akebono/SMSのreadmeを参考に
     - heating.c
         - thermal*.txtでup, perpのカウント数のトータルを計算し、smscup.txt, smscperp.txtに時刻 各エネルギーの合計(4) 全エネルギーの合計という形式で書き出し
 
-2018.03.26 
+2018.03.26
 文責　石ヶ谷侑季
 
 SMSデータから導出したイオンの各種パラメータ
 参考文献（導出手法）Watanabe S., B. A. Whalen, and A. W. Yau, Thermal Ion Observations of Depletion and Refilling in the Plasmaspheric Trough, J. Geophys. Res., Vol. 97, No. A2, 1081-1096, 1992.
 
 - 山田学さん（千葉工業大学）より提供いただいたもの
-    - y1990.dat  
+    - y1990.dat
 	山田さんが導出した1990年1-4月の各種イオンのパラメータ
-    - readpara.f  
+    - readpara.f
 	y1990.datの読み込みプログラム
 
 - その他
-    - readpara2.f  
-    指定した日付のH+,O+のデータを読みこみ別のファイルに任意のデータを書き込む  
+    - readpara2.f
+    指定した日付のH+,O+のデータを読みこみ別のファイルに任意のデータを書き込む
     書き出すデータは以下を参照
 
 | Variable | Description |
@@ -64,7 +64,9 @@ SMSデータから導出したイオンの各種パラメータ
 | cvpe    | Perpendicular Velocity (km/s) |
 | ves()   | Satellite Velocity in the Satellite Coordinate (km/s) |
 
-※ 全体が[]で囲まれている変数は他の値から導き出せる.  
-(学部時代 gnuplot を使うために値を書き込んだもの.プログラムのデータ読み込みの都合でまだ残しているがそのうち他の変数を記述するかも知れない…)  
+※ 全体が[]で囲まれている変数は他の値から導き出せる.
+(学部時代 gnuplot を使うために値を書き込んだもの.プログラムのデータ読み込みの都合でまだ残しているがそのうち他の変数を記述するかも知れない…)
 ※ コメントの直後にアスタリスクが付いている変数はNSSDC からダウンロードしたデータ
 
+- 小野澤コメント 2023.10.25
+y1990.datファイルのttmmssは必ずしも時刻順に並んでいない。前後している場合があるので注意。
