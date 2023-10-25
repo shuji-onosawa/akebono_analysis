@@ -5,13 +5,12 @@ import calc_dispersion_in_cold_plasma as calc_dr
 import os
 
 
-def plotFreqVsWavelength(waveNormalAngle):
+def plotFreqVsWavelength(waveNormalAngle, save_dir):
     # before running this script, check plasma parameters in plasma_params.py
 
     # set parameters
     omega_s = pp.wlh
     freq = np.abs(omega_s['value'])*np.logspace(-3, 1, 10000)
-    save_dir = '../plots/Ishigaya_events/dispersion_relation/'
 
     # calc dispersion relation
     n_L, n_R, S, D, P = calc_dr.calc_dispersion_relation(freq, waveNormalAngle)
@@ -40,9 +39,18 @@ def plotFreqVsWavelength(waveNormalAngle):
         os.makedirs(save_dir)
     plt.savefig(save_dir+'/freqVSwavelength_' + str(waveNormalAngle)+'.png')
 
+    # save plasma parameters in text file
+    with open(save_dir+'/plasma_params.txt', mode='w') as f:
+        f.write('plasma parameters\n')
+        f.write('B0 = '+str(pp.B0)+' [T]\n')
+        f.write('NE = '+str(pp.NE)+' [m^-3]\n')
+        f.write('ion_ratio: NH+:NHe+:NO+ = '+str(pp.ion_ratio)+'\n')
+        f.write('Va = '+str(pp.Va)+' [m s^-1]\n')
+
 
 for wna in [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]:
-    plotFreqVsWavelength(wna)
+    save_dir = '../plots/Ishigaya_events/1990-3-6/dispersion_relation/'
+    plotFreqVsWavelength(wna, save_dir)
 
 '''
 # plot refraction index vs frequency

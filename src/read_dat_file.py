@@ -3,7 +3,7 @@ with open('y1990.dat', 'r') as f:
     data = [line.strip().split() for line in lines]
 
 for i in range(len(data)):
-    if data[i][0] == '900211':
+    if data[i][0] == '900217':
         print('---')
         print(data[i][1])
         logNH = float(data[i][26])
