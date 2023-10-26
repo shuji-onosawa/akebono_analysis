@@ -8,8 +8,9 @@ E_x &= \tilde{E_0} exp(i(\vec{k} \cdot \vec{r} - \omega t))\\
 & = E_x\vec{P_B} = \vec{B_w}\\
 \vec{P_B}& = \left(\frac{k \cos \theta}{\omega} \cdot \frac{i D}{S-n^2}, \frac{k}{\omega}\left(\cos \theta+\frac{i D}{S-n^2} \sin \theta\right), \frac{k \sin \theta}{\omega} \cdot\left(-\frac{i P}{S-n^2}\right)\right)\\
 \end{aligned}$
-$S, D, P$はそれぞれ、コールドプラズマの分散関係の係数である。
+$S, D, P$はそれぞれ、コールドプラズマの分散関係式の係数である。
 $n$ はコールドプラズマの屈折率である。
+$\theta$はプラズマ波動の伝搬角、$\omega$はプラズマ波動の角周波数。
 $\tilde{E_0}$は実数
 
 衛星のスピン面に投影された電場ベクトルおよび磁場ベクトルは、
@@ -54,10 +55,10 @@ $$
 \end{aligned}
 $$
 
-スピン面に投影された電場ベクトルおよび磁場ベクトルの大きさが最大となる時刻を$t = t_{max}$としたとき、
+スピン面に投影された電場ベクトルおよび磁場ベクトルの大きさが最大となる時刻 $t=t_{max}$での$\theta_{E}, \theta_{B}$を$\theta_{E_{max}}, \theta_{B_{max}}$とすると
 $$
 \begin{aligned}
-\vec{E_{\text {spin }(t_{max})}} & = \vec{E_{\text {spin }}} \cdot \vec{e_z}\\
-\vec{B_{\text {spin }(t_{max})}} & = \vec{B_{\text {spin }}} \cdot \vec{e_z}\\
+\cos \theta_{E_{max}} & = \frac{\vec{E_{\text {spin }(t_{max})}}}{|\vec{E_{\text {spin }(t_{max})}}|} \cdot \vec{e_z}\\
+\cos \theta_{B_{max}} & = \frac{\vec{B_{\text {spin }(t_{max})}}}{|\vec{B_{\text {spin }(t_{max})}}|} \cdot \vec{e_z}\\
 \end{aligned}
 $$
