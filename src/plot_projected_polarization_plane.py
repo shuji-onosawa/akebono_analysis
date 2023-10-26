@@ -26,7 +26,7 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
 
     phase = np.linspace(0, 2*np.pi, 1000)
 
-    antennna_vec = np.array([np.cos(phase)*spin_plane_unit_vec1[0] + np.sin(phase)*spin_plane_unit_vec2[0],
+    antenna_vec = np.array([np.cos(phase)*spin_plane_unit_vec1[0] + np.sin(phase)*spin_plane_unit_vec2[0],
                             np.cos(phase)*spin_plane_unit_vec1[1] + np.sin(phase)*spin_plane_unit_vec2[1],
                             np.cos(phase)*spin_plane_unit_vec1[2] + np.sin(phase)*spin_plane_unit_vec2[2]])
 
@@ -61,7 +61,7 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     ax.quiver(0, 0, 0, k_vec[0], k_vec[1], k_vec[2])
     ax.scatter(np.cos(phase), -By_Bx*np.sin(phase), Bz_Bx*np.cos(phase),
                color='b', s=1.0, marker='o', label='M field, WNA = '+str(wna)+' [deg]')
-    ax.scatter(2*antennna_vec[0], 2*antennna_vec[1], 2*antennna_vec[2], color='k', s=1, label='antenna vector')
+    ax.scatter(2*antenna_vec[0], 2*antenna_vec[1], 2*antenna_vec[2], color='k', s=1, label='antenna vector')
 
     ax.set_xlim(-2.5, 2.5)
     ax.set_ylim(-2.5, 2.5)
@@ -77,15 +77,21 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     Evec = np.array([np.cos(phase), -Ey_Ex*np.sin(phase), Ez_Ex*np.cos(phase)]).T
     Bvec = np.array([np.cos(phase), -By_Bx*np.sin(phase), Bz_Bx*np.cos(phase)]).T
     # calc projection of E field on spin plane
-    Evec_proj_vec = Evec - np.dot(Evec, spin_plane_normal_vec.reshape(3, 1))*spin_plane_normal_vec.reshape(1, 3)
+    EvecProjVec = np.zeros((len(phase), 3))
+    for i in range(len(phase)):
+        EvecDotAntenna = np.dot(Evec[i], antenna_vec[:, i])
+        EvecProjVec[i] = np.nanmax(EvecDotAntenna)*antenna_vec[:, i]
     # calc projection of B field on spin plane
-    Bvec_proj_vec = Bvec - np.dot(Bvec, spin_plane_normal_vec.reshape(3, 1))*spin_plane_normal_vec.reshape(1, 3)
+    BvecProjVec = np.zeros((len(phase), 3))
+    for i in range(len(phase)):
+        BvecDotAntenna = np.dot(Bvec[i], antenna_vec[:, i])
+        BvecProjVec[i] = np.nanmax(BvecDotAntenna)*antenna_vec[:, i]
 
     ax = fig.add_subplot(222)
-    ax.scatter(np.dot(Evec_proj_vec, spin_plane_unit_vec1),
-               np.dot(Evec_proj_vec, spin_plane_unit_vec2),
+    ax.scatter(np.dot(EvecProjVec, spin_plane_unit_vec1),
+               np.dot(EvecProjVec, spin_plane_unit_vec2),
                color='r', s=1)
-    ax.scatter(np.dot(Bvec_proj_vec, spin_plane_unit_vec1),
+    ax.scatter(np.dot(Bvec, spin_plane_unit_vec1),
                np.dot(Bvec_proj_vec, spin_plane_unit_vec2),
                color='b', s=1)
     ax.set_xlim(-2.5, 2.5)
