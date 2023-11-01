@@ -59,13 +59,16 @@ def storeMovStd(xarray, timeWindow, storeName):
         pytplot.options(storeName, 'ytitle', 'Moving Std ch{} \n[(mV/m)^2/Hz]'.format(i+1))
 
 
-def storeEpwrLines(xarray):
+def storeEpwrLines(xarray, startTime, endTime):
     '''
     xarray.DataArrayをpytplotに格納する
     :param xarray: xarray.DataArray
-    :param storeName: str
+    :param startTime: str (yyyy-mm-dd HH:MM:SS)
+    :param endTime: str (yyyy-mm-dd HH:MM:SS)
     :return: None
     '''
+    # 時間範囲を指定
+    xarray = xarray.sel(time=slice(startTime, endTime))
     pwrMatrix = xarray.values
     timePwr = xarray.coords['time'].values
     specBin = xarray.coords['spec_bins'].values
@@ -78,15 +81,19 @@ def storeEpwrLines(xarray):
         pytplot.store_data(storeName, data={'x': timePwr, 'y': pwrMatrix[:, i].T})
         pytplot.options(storeName, 'ytitle', '{} \n[(mV/m)^2/Hz]'.format(str(specBin[i])))
         pytplot.options(storeName, 'yrange', [0.9*pwrMin[i], 1.1*pwrMax[i]])
+        pytplot.options(storeName, 'ylog', 1)
 
 
-def storeBpwrLines(xarrary):
+def storeBpwrLines(xarrary, startTime, endTime):
     '''
     xarray.DataArrayをpytplotに格納する
     :param xarrary: xarray.DataArray
-    :param storeName: str
+    :param startTime: str (yyyy-mm-dd HH:MM:SS)
+    :param endTime: str (yyyy-mm-dd HH:MM:SS)
     :return: None
     '''
+    # 時間範囲を指定
+    xarrary = xarrary.sel(time=slice(startTime, endTime))
     pwrMatrix = xarrary.values
     timePwr = xarrary.coords['time'].values
     specBin = xarrary.coords['spec_bins'].values
@@ -98,3 +105,4 @@ def storeBpwrLines(xarrary):
         pytplot.store_data(storeName, data={'x': timePwr, 'y': pwrMatrix[:, i].T})
         pytplot.options(storeName, 'ytitle', '{} \n[(pT)^2/Hz]'.format(str(specBin[i])))
         pytplot.options(storeName, 'yrange', [0.9*pwrMin[i], 1.1*pwrMax[i]])
+        pytplot.options(storeName, 'ylog', 1)
