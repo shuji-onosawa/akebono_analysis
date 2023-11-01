@@ -10,6 +10,8 @@ from preprocess_mgf_epoch import interpolate_mgf_epoch, convert_epoch
 def calc_angle_b0_antenna(b0_dataarray,
                           component: str,
                           antenna_vector: np.ndarray):
+    # antenna_vectorは大きさ1のベクトルとする
+    antenna_vector = antenna_vector/np.linalg.norm(antenna_vector)
     # b0xryのB0_spinのデータを配列として取り出す。
     b0_spin = b0_dataarray.values
     # B0_spinの配列の隣同士の要素の外積を計算し、その結果の配列をつくる。配列の最後は1つ前と同じ値とする。
@@ -25,7 +27,7 @@ def calc_angle_b0_antenna(b0_dataarray,
     # dot_b0_Eyのarccosを計算する。
     angle_b0_antenna = np.arccos(dot_b0_antenna/np.linalg.norm(b0_spin, axis=1))
 
-    # b0_crossとb0_cross_antennaの内積を計算する。np.einsumは、アインシュタインの縮約記法を用いて
+    # b0_cros sとb0_cross_antennaの内積を計算する。np.einsumは、アインシュタインの縮約記法を用いて
     # 複雑な線形代数演算を表現するための強力な関数
     dot_b0_cross_b0_cross_antenna = np.einsum('ij,ij->i', b0_cross, b0_cross_antenna)
 

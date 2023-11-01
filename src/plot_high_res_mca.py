@@ -113,7 +113,8 @@ def store_angle_b0(wave_mgf_ds: xr.Dataset):
                     varname=['angle_b0_Ey', 'angle_b0_sBy', 'angle_b0_Bloop'],
                     databar=True)
     pytplot.store_data('angle_b0_B', data=['angle_b0_Bloop', 'angle_b0_sBy'])
-    pytplot.options('angle_b0_B', 'color', ['k', 'r'])
+    pytplot.options('angle_b0_B', 'color', ['k', 'r']) # red: sBy, black: Bloop
+    pytplot.options(['angle_b0_Ey', 'angle_b0_B'], 'panel_size', 0.5)
 
 
 def store_gyrofreq():

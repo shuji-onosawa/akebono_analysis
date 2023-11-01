@@ -32,11 +32,10 @@ def get_next_date(date: str = '1970-1-1'):
     Returns
     -------
     str
-        次の日の日付
+        次の日の日付 (yyyy-mm-dd)
     """
-    date = datetime.datetime.strptime(date, '%Y-%m-%d')
-    date += datetime.timedelta(days=1)
-    return date.strftime('%Y-%m-%d')
+    nextDate = datetime.datetime.strptime(date, '%Y-%m-%d') + datetime.timedelta(days=1)
+    return nextDate.strftime('%Y-%m-%d')
 
 
 def get_data_in_angle_range(angle_ary, data_ary, angle_range: list):
@@ -71,6 +70,15 @@ def get_data_in_angle_range(angle_ary, data_ary, angle_range: list):
 
 # 与えられた配列の要素が負の値から正の値に変わるインデックスを取得
 def find_zero_cross_idx(input_array):
+    """
+    example:
+    input_array = np.array([-1, -2, 3, 1, 2, -3, -4, 3, 1, 1])
+    pos_to_neg_indices, neg_to_pos_indices = find_zero_cross_idx(input_array)
+    print(pos_to_neg_indices)
+    print(neg_to_pos_indices)
+    >>> [4]
+    >>> [1, 6]
+    """
     # 入力をNumPy配列に変換
     np_array = np.array(input_array)
 
