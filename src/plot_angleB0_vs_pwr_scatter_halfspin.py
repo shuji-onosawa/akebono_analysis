@@ -87,20 +87,11 @@ def plotAngleB0Vspwr(date: str, startTime: str, endTime,
 
     # judge whether to use half spin or not
     # criteria: if there are any values over threshold_percent*Epwr_max_ary[ch], use half spin
-    # デバッグ用: データを表示して問題を特定する
-    print("Epwr_ary shape:", Epwr_ary.shape)
-    print("Epwr_max_ary shape:", Epwr_max_ary.shape)
     for ch in range(12):
         # initialize lists
         Epwr_list.append([])
         angle_b0_Ey_list.append([])
         for i in range(len(half_spin_idx_range_list_E)):
-            # デバッグ用: 各チャンネルとインデックス範囲でのデータを表示
-            print(f"Channel {ch}, Range {i}:")
-            print("half_spin_idx_range_list_E:", half_spin_idx_range_list_E[i])
-            print("Epwr_ary data:", Epwr_ary[half_spin_idx_range_list_E[i][0]:half_spin_idx_range_list_E[i][1], ch])
-            print("Threshold:", threshold_percent * Epwr_max_ary[ch])
-
             # if there are any values over threshold_percent*Epwr_max_ary[ch], use half spin
             if np.nanmax(Epwr_ary[half_spin_idx_range_list_E[i][0]:half_spin_idx_range_list_E[i][1], ch]) > threshold_percent*Epwr_max_ary[ch]:
                 Epwr_list[ch] += Epwr_ary[half_spin_idx_range_list_E[i][0]:half_spin_idx_range_list_E[i][1], ch].tolist()
