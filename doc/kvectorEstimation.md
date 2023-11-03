@@ -1,4 +1,4 @@
-z軸を背景磁場の向きとする。
+z軸を背景磁場$\vec B_0$の向きとする。
 xz面に波数ベクトルがあるようにx軸をとる。
 y軸は左手系をなすようにとる。
 
@@ -19,34 +19,20 @@ $n$ はコールドプラズマの屈折率である。
 $\theta$はプラズマ波動の伝搬角、$\omega$はプラズマ波動の角周波数。
 $\tilde{E_0}$は実数
 
+波動の周波数に対して、データサンプリング周波数が十分に小さい時を考える。
 電場アンテナがさす方向を$\vec{a_E}$、磁場アンテナがさす方向を$\vec{a_B}$とする。
-
-衛星のスピン面に投影された電場ベクトルおよび磁場ベクトルは、
+$\vec {a_E}$と$\vec B_0$がなす角が$\theta_E$のとき、MCAのスペクトルデータの値$E_{MCA}$は
 $$
 \begin{aligned}
-\vec{E_{\text {spin }}} & =\vec{E}_\omega-\left(\vec{E}_w \cdot \vec{n}\right) \vec{n} \\
-& =\left(E_x, E_y, E_z\right)-\left(E_x \sin \psi \cos \phi+E_y \sin \psi \sin \phi+E_z \cos \psi\right)(\sin \psi \cos \phi, \sin \psi \sin \phi, \cos \psi) \\
-& =\left(\begin{array}{cc}
-\left(t-\sin ^2 \psi \cos ^2 \phi\right) E_x+\left(-\sin ^2 \psi \sin \phi \cos \phi\right) E_y+(-\sin \psi \cos \psi \cos \phi) E_z \\
-\left(-\sin ^2 \psi \sin \phi \cos \phi\right) E_x+\left(1-\sin ^2 \psi \sin ^2 \phi\right) E_y+(-\sin \psi \cos \psi \sin \phi) E_z \\
-(-\sin \psi \cos \psi \cos \phi) E_x+(-\sin \psi \cos \psi \sin \phi) E_y+\left(1-\cos ^2 \psi\right) E_z
-\end{array}\right) \\
-& =\left(\begin{array}{ccc}
-1-\sin ^2 \psi \cos ^2 \phi & -\sin ^2 \psi \sin \phi \cos \phi & -\sin \psi \cos \psi \cos \phi \\
--\sin ^2 \psi \sin \phi \cos \phi & 1-\sin ^2 \psi \sin ^2 \phi & -\sin \psi \cos \psi \sin \phi \\
--\sin \psi \cos \psi \cos \phi & -\sin \psi \cos \psi \sin \phi & 1-\cos ^2 \psi
-\end{array}\right)\left(\begin{array}{l}
-E_x \\
-E_y \\
-E_z
-\end{array}\right)\\
-& = A_{pro} \vec{E_w}\\
-A & = \left(\begin{array}{ccc}
-1-\sin ^2 \psi \cos ^2 \phi & -\sin ^2 \psi \sin \phi \cos \phi & -\sin \psi \cos \psi \cos \phi \\
--\sin ^2 \psi \sin \phi \cos \phi & 1-\sin ^2 \psi \sin ^2 \phi & -\sin \psi \cos \psi \sin \phi \\
--\sin \psi \cos \psi \cos \phi & -\sin \psi \cos \psi \sin \phi & 1-\cos ^2 \psi
-\end{array}\right)\\
-\vec{B_{\text {spin}}} & = A_{pro} \vec{B_w}\\
+E_{MCA} = max(\vec{E_w} \cdot \vec{a_E})_{while \ \delta t}\\
+\delta t \ is \ the \ time \ interval \ of \ MCA \ data.
+\end{aligned}
+$$
+同様に、$\vec {a_B}$と$\vec B_0$がなす角が$\theta_B$のとき、MCAのスペクトルデータの値$B_{MCA}$は
+$$
+\begin{aligned}
+B_{MCA} = max(\vec{B_w} \cdot \vec{a_B})_{while \ \delta t}\\
+\delta t \ is \ the \ time \ interval \ of \ MCA \ data.
 \end{aligned}
 $$
 
