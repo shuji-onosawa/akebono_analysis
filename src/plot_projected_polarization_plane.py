@@ -86,13 +86,12 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     for i in range(len(phase)):
         BvecDotAntenna = np.dot(Bvec[i], antenna_vec[:, i])
         BvecProjVec[i] = np.nanmax(BvecDotAntenna)*antenna_vec[:, i]
-
     ax = fig.add_subplot(222)
     ax.scatter(np.dot(EvecProjVec, spin_plane_unit_vec1),
                np.dot(EvecProjVec, spin_plane_unit_vec2),
                color='r', s=1)
     ax.scatter(np.dot(Bvec, spin_plane_unit_vec1),
-               np.dot(Bvec_proj_vec, spin_plane_unit_vec2),
+               np.dot(BvecProjVec, spin_plane_unit_vec2),
                color='b', s=1)
     ax.set_xlim(-2.5, 2.5)
     ax.set_ylim(-2.5, 2.5)
@@ -102,31 +101,31 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
 
     # angle between z axis and field vectors
     # calc angle between z axis and E field vectors
-    normarized_Evec_proj_vec = Evec_proj_vec/np.linalg.norm(Evec_proj_vec, axis=1).reshape(-1, 1)
-    angle_E_b0 = np.arccos(np.dot(normarized_Evec_proj_vec, np.array([0, 0, 1]).reshape(3, 1)))
+    normarizedEvecProjVec = EvecProjVec/np.linalg.norm(EvecProjVec, axis=1).reshape(-1, 1)
+    angle_E_b0 = np.arccos(np.dot(normarizedEvecProjVec, np.array([0, 0, 1]).reshape(3, 1)))
     for i in range(len(angle_E_b0)):
-        if np.dot(normarized_Evec_proj_vec[i], spin_plane_unit_vec2) < 0:
+        if np.dot(normarizedEvecProjVec[i], spin_plane_unit_vec2) < 0:
             angle_E_b0[i] = -angle_E_b0[i]
     # calc angle between z axis and B field vectors
-    normarized_Bvec_proj_vec = Bvec_proj_vec/np.linalg.norm(Bvec_proj_vec, axis=1).reshape(-1, 1)
-    angle_B_b0 = np.arccos(np.dot(normarized_Bvec_proj_vec, np.array([0, 0, 1]).reshape(3, 1)))
+    normarizedBvecProjVec = BvecProjVec/np.linalg.norm(BvecProjVec, axis=1).reshape(-1, 1)
+    angle_B_b0 = np.arccos(np.dot(normarizedBvecProjVec, np.array([0, 0, 1]).reshape(3, 1)))
     for i in range(len(angle_B_b0)):
-        if np.dot(normarized_Bvec_proj_vec[i], spin_plane_unit_vec2) < 0:
+        if np.dot(normarizedBvecProjVec[i], spin_plane_unit_vec2) < 0:
             angle_B_b0[i] = -angle_B_b0[i]
 
     # plot angle dependence of power
     # calc field vector norm
-    Evec_proj_vec_norm = np.linalg.norm(Evec_proj_vec, axis=1)
-    Bvec_proj_vec_norm = np.linalg.norm(Bvec_proj_vec, axis=1)
+    EvecProjVecNorm = np.linalg.norm(EvecProjVec, axis=1)
+    BvecProjVecNorm = np.linalg.norm(BvecProjVec, axis=1)
     # print angle_E_b0 at max E field
     print('wna:', wna, 'phi:', phi)
-    print('angle_E_b0 at max E field = '+str(np.rad2deg(angle_E_b0[np.argmax(Evec_proj_vec_norm)])))
+    print('angle_E_b0 at max E field = '+str(np.rad2deg(angle_E_b0[np.argmax(EvecProjVecNorm)])))
     # print angle_B_b0 at max B field
-    print('angle_B_b0 at max B field = '+str(np.rad2deg(angle_B_b0[np.argmax(Bvec_proj_vec_norm)])))
+    print('angle_B_b0 at max B field = '+str(np.rad2deg(angle_B_b0[np.argmax(BvecProjVecNorm)])))
     ax = fig.add_subplot(223)
-    ax.scatter(np.rad2deg(angle_E_b0), Evec_proj_vec_norm/np.nanmax(Evec_proj_vec_norm),
+    ax.scatter(np.rad2deg(angle_E_b0), EvecProjVecNorm/np.nanmax(EvecProjVecNorm),
                color='r', label='E field', s=2.0)
-    ax.scatter(np.rad2deg(angle_B_b0), Bvec_proj_vec_norm/np.nanmax(Bvec_proj_vec_norm),
+    ax.scatter(np.rad2deg(angle_B_b0), BvecProjVecNorm/np.nanmax(BvecProjVecNorm),
                color='b', label='B field', s=2.0)
     ax.set_xlim(0, 180)
     ax.set_ylim(0, 1.1)

@@ -24,14 +24,14 @@ $\tilde{E_0}$は実数
 $\vec {a_E}$と$\vec B_0$がなす角が$\theta_E$のとき、MCAのスペクトルデータの値$E_{MCA}$は
 $$
 \begin{aligned}
-E_{MCA} = max(\vec{E_w} \cdot \vec{a_E})_{while \ \delta t}\\
+E_{MCA} = max(|\vec{E_w} \cdot \vec{a_E}|)_{while \ \delta t}\\
 \delta t \ is \ the \ time \ interval \ of \ MCA \ data.
 \end{aligned}
 $$
 同様に、$\vec {a_B}$と$\vec B_0$がなす角が$\theta_B$のとき、MCAのスペクトルデータの値$B_{MCA}$は
 $$
 \begin{aligned}
-B_{MCA} = max(\vec{B_w} \cdot \vec{a_B})_{while \ \delta t}\\
+B_{MCA} = max(|\vec{B_w} \cdot \vec{a_B}|)_{while \ \delta t}\\
 \delta t \ is \ the \ time \ interval \ of \ MCA \ data.
 \end{aligned}
 $$

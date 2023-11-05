@@ -57,9 +57,7 @@ def plotAngleB0Vspwr(date: str, startTime: str, endTime,
     for i in range(len(combined_indices_E) - 1):
         start_idx = combined_indices_E[i] + 1
         end_idx = combined_indices_E[i + 1] + 1
-        print("angle_b0_Ey_ary:", angle_b0_Ey_ary[start_idx:end_idx])
         half_spin_idx_range_list_E.append([start_idx, end_idx])
-    print("half_spin_idx_range_list_E:", half_spin_idx_range_list_E)
     # find half spin indices ranges for M field
     Bs_pos_to_neg_idx, Bs_neg_to_pos_idx = find_zero_cross_idx(angle_b0_sBy_ary)
     half_spin_idx_range_list_Bs = []
