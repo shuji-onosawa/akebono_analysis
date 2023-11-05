@@ -10,10 +10,10 @@ import os
 from checkEfieldAntenna import checkEfiedlAntenna
 
 # イベントの日付、開始時刻、終了時刻を入力
-date = '1990-02-11'  # イベントの日付. yyyy-mm-dd
+date = '1990-02-17'  # イベントの日付. yyyy-mm-dd
 nextDate = get_next_date(date)
-startTime = '18:05:00'  # イベントの開始時刻. hh:mm:ss
-endTime = '18:10:00'  # イベントの終了時刻. hh:mm:ss
+startTime = '03:45:00'  # イベントの開始時刻. hh:mm:ss
+endTime = '03:55:00'  # イベントの終了時刻. hh:mm:ss
 saveDir = '../plots/enent_analysis/' +\
     date[0:4]+date[5:7]+date[8:] + '_' +\
     startTime[0:2]+startTime[3:5]+startTime[6:] + '-' +\
@@ -65,7 +65,7 @@ print("check Efield antenna")
 sub_xry = checkEfiedlAntenna(date, startTime, endTime)
 antenna = sub_xry.values
 time = sub_xry.coords['time'].values
-with open(saveDir+'Efield_antenna.txt', 'w') as f:
+with open(saveDir+'eventInfo.txt', 'w') as f:
     f.write('time, antenna\n')
     for i in range(len(time)):
         f.write(str(time[i]) + ', ' + antenna[i] + '\n')
@@ -74,4 +74,6 @@ with open(saveDir+'Efield_antenna.txt', 'w') as f:
 b0 = pytplot.get_data('akb_orb_bmdl_scaler', xarray=True)
 b0 = b0.sel(time=slice(date+' '+startTime, date+' '+endTime))
 b0 = b0.mean(dim='time')
-print("mean B0: ", b0.valuse[0] + 'nT')
+# eventInfo.txtに書き込み
+with open(saveDir+'eventInfo.txt', 'a') as f:
+    f.write('mean B0 = '+str(b0.values)+'\n')
