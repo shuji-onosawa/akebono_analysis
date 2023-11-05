@@ -27,7 +27,7 @@ def calcMovingAverage(xarray, startTime, endTime, timeWindow):
     time = xarray.coords['time'].values
     timeDelta = pd.to_datetime(time[1]) - pd.to_datetime(time[0])
     # 時間移動平均を計算
-    timeWindow = int(timeWindow/timeDelta.total_seconds())   # timeWindowをデータ数に変換
+    timeWindow = int(timeWindow*60/timeDelta.total_seconds())   # timeWindowをデータ数に変換
     aveXry = xarray.rolling(time=timeWindow, center=True, min_periods=1).mean(skipna=True)
     aveXry = aveXry.sel(time=slice(startTime, endTime))
     return aveXry
@@ -50,7 +50,7 @@ def calcMovingStd(xarray, startTime, endTime, timeWindow):
     time = xarray.coords['time'].values
     timeDelta = pd.to_datetime(time[1]) - pd.to_datetime(time[0])
     # 時間移動標準偏差を計算
-    timeWindow = int(timeWindow/timeDelta.total_seconds())   # timeWindowをデータ数に変換
+    timeWindow = int(timeWindow*60/timeDelta.total_seconds())   # timeWindowをデータ数に変換
     stdXry = xarray.rolling(time=timeWindow, center=True, min_periods=1).std(skipna=True)
     stdXry = stdXry.sel(time=slice(startTime, endTime))
     return stdXry
