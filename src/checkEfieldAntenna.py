@@ -24,5 +24,6 @@ def checkEfiedlAntenna(date, startTime, endTime):
     epoch_datetime = convert_epoch(epoch_sub_itrp)
 
     xry = xr.DataArray(data=eaxis, coords={'time': epoch_datetime}, dims=['time'])
-    sub_xry = xry.sel(time=slice(date+' '+startTime, date+' '+endTime))
+    xry_sorted = xry.sortby('time')
+    sub_xry = xry_sorted.sel(time=slice(date+' '+startTime, date+' '+endTime))
     return sub_xry

@@ -10,10 +10,10 @@ import os
 from checkEfieldAntenna import checkEfiedlAntenna
 
 # イベントの日付、開始時刻、終了時刻を入力
-date = '1990-02-17'  # イベントの日付. yyyy-mm-dd
+date = '1990-02-25'  # イベントの日付. yyyy-mm-dd
 nextDate = get_next_date(date)
-startTime = '03:45:00'  # イベントの開始時刻. hh:mm:ss
-endTime = '03:55:00'  # イベントの終了時刻. hh:mm:ss
+startTime = '12:22:30'  # イベントの開始時刻. hh:mm:ss
+endTime = '12:27:30'  # イベントの終了時刻. hh:mm:ss
 saveDir = '../plots/enent_analysis/' +\
     date[0:4]+date[5:7]+date[8:] + '_' +\
     startTime[0:2]+startTime[3:5]+startTime[6:] + '-' +\
@@ -44,7 +44,14 @@ pytplot.options('akb_mca_Emax_pwr', 'zrange', [1e-7, 1e2])
 pytplot.options('akb_mca_Bmax_pwr', 'zrange', [1e-5, 1e6])
 pytplot.tplot(['akb_mca_Emax_pwr', 'angle_b0_Ey', 'akb_mca_Bmax_pwr', 'angle_b0_B'],
               var_label=['akb_orb_inv', 'akb_orb_mlt', 'akb_orb_alt'],
-              xsize=14, ysize=14, save_jpeg=saveDir+'spec_angleB0', display=False)
+              xsize=10, ysize=10, save_jpeg=saveDir+'spec_angleB0', display=False)
+
+# サイクロトロン周波数のプロット
+print("plot gyrofreq")
+pytplot.store_data('gyrofreq', data='fco fche fch fce')
+pytplot.tplot('gyrofreq',
+              xsize=10, ysize=10, save_jpeg=saveDir+'gyrofreq', display=False)
+
 # 角度vs波動強度のプロット
 print("plot angle_b0 vs Epwr and Bpwr")
 plotAngleB0Vspwr(date, startTime, endTime, saveDir)
@@ -60,20 +67,21 @@ pytplot.tplot(['akb_mca_Bpwr_ch1', 'akb_mca_Bpwr_ch2', 'akb_mca_Bpwr_ch3', 'akb_
                'akb_mca_Bpwr_ch9', 'akb_mca_Bpwr_ch10', 'akb_mca_Bpwr_ch11', 'akb_mca_Bpwr_ch12'],
               xsize=14, ysize=14, save_jpeg=saveDir+'Bpwr_lines', display=False)
 
-# 電場アンテナがxかyかを判別
-print("check Efield antenna")
-sub_xry = checkEfiedlAntenna(date, startTime, endTime)
-antenna = sub_xry.values
-time = sub_xry.coords['time'].values
-with open(saveDir+'eventInfo.txt', 'w') as f:
-    f.write('time, antenna\n')
-    for i in range(len(time)):
-        f.write(str(time[i]) + ', ' + antenna[i] + '\n')
-
 # 平均磁場強度を表示
 b0 = pytplot.get_data('akb_orb_bmdl_scaler', xarray=True)
 b0 = b0.sel(time=slice(date+' '+startTime, date+' '+endTime))
 b0 = b0.mean(dim='time')
 # eventInfo.txtに書き込み
-with open(saveDir+'eventInfo.txt', 'a') as f:
+with open(saveDir+'eventInfo.txt', 'w') as f:
     f.write('mean B0 = '+str(b0.values)+'\n')
+
+# 電場アンテナがxかyかを判別
+print("check Efield antenna")
+sub_xry = checkEfiedlAntenna(date, startTime, endTime)
+antenna = sub_xry.values
+time = sub_xry.coords['time'].values
+with open(saveDir+'eventInfo.txt', 'a') as f:
+    f.write('time, antenna\n')
+    for i in range(len(time)):
+        f.write(str(time[i]) + ', ' + antenna[i] + '\n')
+

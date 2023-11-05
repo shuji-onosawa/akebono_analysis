@@ -133,12 +133,23 @@ def store_gyrofreq():
     bmdl_scaler_ary = bmdl_scaler.y  # 単位はnT
     bmdl_scaler_ary = bmdl_scaler_ary*1e-9  # 単位をTに変換
     # gyrofrequencyを計算
-    gyrofreq = bmdl_scaler_ary.reshape(bmdl_scaler_ary.size, 1)*q/np.array([me, mh, mhe, mo])/2/np.pi
+    fco = q*bmdl_scaler_ary/mo/2/np.pi
+    fche = q*bmdl_scaler_ary/mhe/2/np.pi
+    fch = q*bmdl_scaler_ary/mh/2/np.pi
+    fce = q*bmdl_scaler_ary/me/2/np.pi
     # tplot変数として保存
-    pytplot.store_data('gyrofreq', data={'x': bmdl_scaler.times, 'y': gyrofreq})
-    pytplot.options('gyrofreq',
-                    opt_dict={'ylog': 1, 'color': ['k', 'r', 'b', 'g'],
-                              'legend_names': ['e', 'H', 'He', 'O']})
+    pytplot.store_data('fco', data={'x': bmdl_scaler.times, 'y': fco})
+    pytplot.options('fco',
+                    opt_dict={'ylog': 1, 'color': 'k', 'yrange': [1, 2e4]})
+    pytplot.store_data('fche', data={'x': bmdl_scaler.times, 'y': fche})
+    pytplot.options('fche',
+                    opt_dict={'ylog': 1, 'color': 'r', 'yrange': [1, 2e4]})
+    pytplot.store_data('fch', data={'x': bmdl_scaler.times, 'y': fch})
+    pytplot.options('fch',
+                    opt_dict={'ylog': 1, 'color': 'b', 'yrange': [1, 2e4]})
+    pytplot.store_data('fce', data={'x': bmdl_scaler.times, 'y': fce})
+    pytplot.options('fce',
+                    opt_dict={'ylog': 1, 'color': 'g', 'yrange': [1, 2e4]})
 
 
 def store_Lvalue():
