@@ -49,7 +49,7 @@ def plotFreqVsWavelength(waveNormalAngle, save_dir):
 
 
 for wna in [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]:
-    save_dir = '../plots/Ishigaya_events/1990-3-6/dispersion_relation/'
+    save_dir = '../plots/Ishigaya_events/0217/dispersion_relation/'
     plotFreqVsWavelength(wna, save_dir)
 
 '''

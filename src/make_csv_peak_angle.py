@@ -25,6 +25,10 @@ def get_peak_angle(theta, phi, wna, freq, mode):
 
     phase = np.linspace(0, 2*np.pi, 1000)
 
+    antenna_vec = np.array([np.cos(phase)*spin_plane_unit_vec1[0] + np.sin(phase)*spin_plane_unit_vec2[0],
+                            np.cos(phase)*spin_plane_unit_vec1[1] + np.sin(phase)*spin_plane_unit_vec2[1],
+                            np.cos(phase)*spin_plane_unit_vec1[2] + np.sin(phase)*spin_plane_unit_vec2[2]])
+
     # wave polarization plane
     wna = wna
     freq = freq  # Hz
@@ -41,10 +45,15 @@ def get_peak_angle(theta, phi, wna, freq, mode):
     Evec = np.array([np.cos(phase), -Ey_Ex*np.sin(phase), Ez_Ex*np.cos(phase)]).T
     Bvec = np.array([np.cos(phase), -By_Bx*np.sin(phase), Bz_Bx*np.cos(phase)]).T
     # calc projection of E field on spin plane
-    Evec_proj_vec = Evec - np.dot(Evec, spin_plane_normal_vec.reshape(3, 1))*spin_plane_normal_vec.reshape(1, 3)
+    EvecProjVec = np.zeros((len(phase), 3))
+    for i in range(len(phase)):
+        EvecDotAntenna = np.dot(antenna_vec[:, i], Evec)
+        EvecProjVec[i] = np.nanmax(EvecDotAntenna)*antenna_vec[:, i]
     # calc projection of B field on spin plane
-    Bvec_proj_vec = Bvec - np.dot(Bvec, spin_plane_normal_vec.reshape(3, 1))*spin_plane_normal_vec.reshape(1, 3)
-
+    BvecProjVec = np.zeros((len(phase), 3))
+    for i in range(len(phase)):
+        BvecDotAntenna = np.dot(antenna_vec[:, i], Bvec)
+        BvecProjVec[i] = np.nanmax(BvecDotAntenna)*antenna_vec[:, i]
     # angle between z axis and field vectors
     # calc angle between z axis and E field vectors
     normarized_Evec_proj_vec = Evec_proj_vec/np.linalg.norm(Evec_proj_vec, axis=1).reshape(-1, 1)

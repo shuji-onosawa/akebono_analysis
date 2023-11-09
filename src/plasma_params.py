@@ -9,16 +9,16 @@ MH = 1.67262192369e-27  # [kg]
 MHE = 6.646477e-27  # [kg]
 MO = 2.6566962e-26  # [kg]
 C = 2.99792458e8  # [m s**-1]
-B0 = 8531e-9  # [T]
+B0 = 8410e-9  # [T]
 
 # plasma parameter
-NE = 71e6  # [m**-3]
-ion_ratio = np.array([0.30, 0.06, 0.64])  # H:He:O
+NE = 60e6  # [m**-3]
+ion_ratio = np.array([0.46, 0.11, 0.43])  # H:He:O
 nh = ion_ratio[0]*NE
 nhe = ion_ratio[1]*NE
 no = ion_ratio[2]*NE
 
-RHO = sum(ion_ratio*np.array([MH, MHE, MO]))
+RHO = nh*MH + nhe*MHE + no*MO  # [kg m**-3]
 
 pi_e = {'value': (NE*Q**2/(EPS*ME))**0.5, 'label': r'$\Pi_{e}$'}
 pi_h = {'value': (nh*Q**2/(EPS*MH))**0.5, 'lable': r'$\Pi_{h}$'}

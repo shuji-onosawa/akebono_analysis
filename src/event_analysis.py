@@ -10,10 +10,10 @@ import os
 from checkEfieldAntenna import checkEfiedlAntenna
 
 # イベントの日付、開始時刻、終了時刻を入力
-date = '1990-02-25'  # イベントの日付. yyyy-mm-dd
+date = '1990-03-06'  # イベントの日付. yyyy-mm-dd
 nextDate = get_next_date(date)
-startTime = '12:22:30'  # イベントの開始時刻. hh:mm:ss
-endTime = '12:27:30'  # イベントの終了時刻. hh:mm:ss
+startTime = '14:06:00'  # イベントの開始時刻. hh:mm:ss
+endTime = '14:11:00'  # イベントの終了時刻. hh:mm:ss
 saveDir = '../plots/enent_analysis/' +\
     date[0:4]+date[5:7]+date[8:] + '_' +\
     startTime[0:2]+startTime[3:5]+startTime[6:] + '-' +\
@@ -58,14 +58,19 @@ plotAngleB0Vspwr(date, startTime, endTime, saveDir)
 
 # 各周波数で波動強度のラインプロットを作成
 print("plot Epwr and Bpwr lines")
+pytplot.tplot_options('xmargin', [0.15, 0.05])
 pytplot.tplot(['akb_mca_Epwr_ch1', 'akb_mca_Epwr_ch2', 'akb_mca_Epwr_ch3', 'akb_mca_Epwr_ch4',
-               'akb_mca_Epwr_ch5', 'akb_mca_Epwr_ch6', 'akb_mca_Epwr_ch7', 'akb_mca_Epwr_ch8',
-               'akb_mca_Epwr_ch9', 'akb_mca_Epwr_ch10', 'akb_mca_Epwr_ch11', 'akb_mca_Epwr_ch12'],
-              xsize=14, ysize=14, save_jpeg=saveDir+'Epwr_lines', display=False)
+               'akb_mca_Epwr_ch5', 'akb_mca_Epwr_ch6'],
+              xsize=10, ysize=12, save_jpeg=saveDir+'Epwr_lines_ch1-6', display=False)
+pytplot.tplot(['akb_mca_Epwr_ch7', 'akb_mca_Epwr_ch8', 'akb_mca_Epwr_ch9', 'akb_mca_Epwr_ch10',
+               'akb_mca_Epwr_ch11', 'akb_mca_Epwr_ch12'],
+              xsize=10, ysize=12, save_jpeg=saveDir+'Epwr_lines_ch7-12', display=False)
 pytplot.tplot(['akb_mca_Bpwr_ch1', 'akb_mca_Bpwr_ch2', 'akb_mca_Bpwr_ch3', 'akb_mca_Bpwr_ch4',
-               'akb_mca_Bpwr_ch5', 'akb_mca_Bpwr_ch6', 'akb_mca_Bpwr_ch7', 'akb_mca_Bpwr_ch8',
-               'akb_mca_Bpwr_ch9', 'akb_mca_Bpwr_ch10', 'akb_mca_Bpwr_ch11', 'akb_mca_Bpwr_ch12'],
-              xsize=14, ysize=14, save_jpeg=saveDir+'Bpwr_lines', display=False)
+               'akb_mca_Bpwr_ch5', 'akb_mca_Bpwr_ch6'],
+              xsize=10, ysize=12, save_jpeg=saveDir+'Bpwr_lines_ch1-6', display=False)
+pytplot.tplot(['akb_mca_Bpwr_ch7', 'akb_mca_Bpwr_ch8', 'akb_mca_Bpwr_ch9', 'akb_mca_Bpwr_ch10',
+               'akb_mca_Bpwr_ch11', 'akb_mca_Bpwr_ch12'],
+              xsize=10, ysize=12, save_jpeg=saveDir+'Bpwr_lines_ch7-12', display=False)
 
 # 平均磁場強度を表示
 b0 = pytplot.get_data('akb_orb_bmdl_scaler', xarray=True)

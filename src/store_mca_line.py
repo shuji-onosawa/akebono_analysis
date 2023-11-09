@@ -85,7 +85,7 @@ def storeEpwrLines(xarray, startTime, endTime):
         pytplot.options(storeName, 'color', ['black', 'red', 'blue'])
         pytplot.options(storeName, 'ytitle', '{} Hz'.format(str(specBin[i])))
         pytplot.options(storeName, 'ysubtitle', '[(mV/m^2)/Hz]')
-        pytplot.options(storeName, 'yrange', [0.1*pwrMin[i], 10*pwrMax[i]])
+        pytplot.options(storeName, 'yrange', [pwrMin[i], pwrMax[i]])
         pytplot.options(storeName, 'ylog', 1)
         pytplot.options(storeName, 'legend_names', ['pwr', 'ma', 'ma+2sigma'])
 
@@ -119,6 +119,6 @@ def storeBpwrLines(xarray, startTime, endTime):
         pytplot.options(storeName, 'color', ['black', 'red', 'blue'])
         pytplot.options(storeName, 'ytitle', '{} Hz'.format(str(specBin[i])))
         pytplot.options(storeName, 'ysubtitle', '[(nT^2/Hz)]')
-        pytplot.options(storeName, 'yrange', [0.1*pwrMin[i], 10*pwrMax[i]])
+        pytplot.options(storeName, 'yrange', [pwrMin[i], pwrMax[i]])
         pytplot.options(storeName, 'ylog', 1)
         pytplot.options(storeName, 'legend_names', ['pwr', 'ma', 'ma+2sigma'])
