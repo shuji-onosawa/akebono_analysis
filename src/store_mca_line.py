@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import pytplot
 import akebono
+import matplotlib.pyplot as plt
 '''
 MCAスペクトルデータを読み込み、それぞれの周波数ごとに強度vs.時間のグラフを作成する
 各プロットには、周波数ごとの強度(Todo:とその1時間平均値、1 sigmaの値を表示する)
@@ -122,3 +123,44 @@ def storeBpwrLines(xarray, startTime, endTime):
         pytplot.options(storeName, 'yrange', [pwrMin[i], pwrMax[i]])
         pytplot.options(storeName, 'ylog', 1)
         pytplot.options(storeName, 'legend_names', ['pwr', 'ma', 'ma+2sigma'])
+
+
+def plotEpwrLines(startTime, endTime):
+    '''
+    MCA電場データのpytplotを受け取り、それぞれの周波数ごとに強度vs.時間のグラフを作成する
+    :param startTime: str (yyyy-mm-dd HH:MM:SS)
+    :param endTime: str (yyyy-mm-dd HH:MM:SS)
+    :return: None
+    '''
+    # mca epwrのデータを取得
+    pwrList = []
+    for ch in range(16):
+        pwrXry = pytplot.get_data('akb_mca_Epwr_ch{}'.format(ch+1), xarray=True)
+        pwrXrySel = pwrXry.sel(time=slice(startTime, endTime))
+        pwrList.append([[pwrXrySel['time'].values], [pwrXrySel.values[:,0]], [pwrXrySel.values[:,1]], [pwrXrySel.values[:,2]]])
+        # pwrList = [time, pwr, ma, ma+2sigma]
+    # angle_b0_Eyのデータを取得
+    angleTvar = pytplot.get_data('angle_b0_Ey')
+    angleAry = angleTvar.y
+    
+    # plot
+    # 2*6のサブプロットを作成
+    fig, ax = plt.subplots(2, 6, figsize=(16, 9))
+    ax = ax.flatten()
+    for i in range(12):
+        # データを取得
+        time = pwrList[i][0]
+        pwr = pwrList[i][1]
+        MovingAve = pwrList[i][2]
+        MAplus2Sigma = pwrList[i][3]
+        # プロット
+        ax[i].scatter(time, pwr, s=1, c=angleAry, cmap='jet')
+        ax[i].plot(time, MovingAve, color='k', label='ma', linestyle='dashed')
+        ax[i].plot(time, MAplus2Sigma, color='k', label='ma+2sigma', linestyle='dotted')
+        ax[i].set_yscale('log')
+        ax[i].set_xlabel('time')
+        ax[i].set_ylabel('Ch{} \n [(mV/m)^2/Hz]'.format(i+1))
+        ax[i].legend()
+    plt.tight_layout()
+    fig.colorbar(ax[0].collections[0], ax=ax, orientation='horizontal', label='angle_b0_Ey')
+    plt.savefig('test.png')
