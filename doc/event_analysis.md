@@ -1,4 +1,8 @@
 # イベント解析の流れ
+## イベントセレクション
+- MLT: 10-14 hr
+- ILAT: 65-80 deg #石ケ谷修論のイベント選択条件
+  - Zhou+2000だとequatorward edge は68 deg, poleward edge は85 degくらいまである
 ## データプロット
 - event_analysis.py
    - ダイナミックスペクトル&アンテナとB0の角度のプロット

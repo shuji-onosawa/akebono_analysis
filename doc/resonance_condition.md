@@ -1,21 +1,31 @@
 # Resonance condition
 
-## Resonance energy
-$$ E_{res} = \frac{1}{2} m V_{res}^2 $$
-- $m$: mass of the particle
-- $V_{res}$: resonant velocity
-## Landau damping
-resonace condition
-$$ \omega - k_\parallel v = 0 $$
-$$ V_{res} = \frac{\omega}{k_\parallel} $$
+## Resonance condition
+$$
+\begin{align*}
+\omega - k_\parallel v - n \Omega = 0 \\
+\omega - k v \cos\theta - n \Omega = 0 \\
+\end{align*}\\
+n = 0: Landau\ damping \\
+n = 1: Cyclotron\ damping
+$$
 - $\omega$: Angular frequency
 - $k_\parallel$: parallel wave number
-## Cyclotron damping
-resonace condition
-$$ \omega - k_\parallel v - n \Omega = 0 $$
-For $n=1$,
-$$ V_{res} = \frac{\omega - \Omega}{k_\parallel}$$
-- $\Omega$: gyro frequency
+- $v$: velocity of the particle
+- $\theta$: wave normal angle
+## Resonance energy
+Assume that pitch angle is 0.
+$$
+\begin{align*}
+v &= \frac{\omega - n \Omega}{k cos\theta} \\
+E &= \frac{1}{2} m v^2 = \frac{1}{2} m \left( \frac{\omega - n \Omega}{k cos\theta} \right)^2\ [J]\\
+&= \frac{1}{2} m \left( \frac{\omega - n \Omega}{k cos\theta} \right)^2 \frac{1}{1.6*10^{-19}}\ [eV]
+\end{align*}
+$$
+- $m$: mass of the particle
+- $E$: energy of the particle
+- $V_{res}$: resonant velocity
+
 
 
 ## example
