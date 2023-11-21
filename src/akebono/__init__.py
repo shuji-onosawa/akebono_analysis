@@ -1,7 +1,7 @@
 from .load import load
 import numpy as np
 import pandas as pd
-from pytplot import store_data, options, get_data, tplot_names
+from pytplot import store_data, options, get_data, tplot_names, del_data
 from pyspedas import time_double
 from pyspedas.cotrans.xyz_to_polar import xyz_to_polar
 from fnmatch import filter
@@ -338,8 +338,9 @@ def orb_postprocessing(files):
     options(prefix + 'gclon', 'ytitle', 'Geocentric Longitude')
     options(prefix + 'gclon', 'ysubtitle', '[deg]')
 
-    stored_names = filter(tplot_names(),
+    stored_names = filter(tplot_names(quiet=True),
                           prefix_project + prefix_descriptor + '*')
+
     return stored_names
 
 
@@ -540,12 +541,20 @@ def mca_postprocessing(datatype, del_invalid_data):
                 prefix+'Bave']
     elif datatype == 'pwr':
         mca_h1cdf_dB_to_absolute('pwr')
+        del_data(prefix+'Emax')
+        del_data(prefix+'Bmax')
+        del_data(prefix+'Eave')
+        del_data(prefix+'Bave')
         return [prefix+'Emax_pwr',
                 prefix+'Bmax_pwr',
                 prefix+'Eave_pwr',
                 prefix+'Bave_pwr']
     elif datatype == 'amp':
         mca_h1cdf_dB_to_absolute('amp')
+        del_data(prefix+'Emax')
+        del_data(prefix+'Bmax')
+        del_data(prefix+'Eave')
+        del_data(prefix+'Bave')
         return [prefix+'Emax_amp',
                 prefix+'Bmax_amp',
                 prefix+'Eave_amp',

@@ -3,17 +3,17 @@
 from plot_high_res_mca import store_angle_b0, store_gyrofreq, get_next_date
 from plot_angleB0_vs_pwr_scatter_halfspin import plotAngleB0Vspwr
 from calc_pwr_matrix_angle_vs_freq import make_wave_mgf_dataset
-from store_mca_line import storeEpwrLines, storeBpwrLines
+from store_mca_line import storeEpwrLines, storeBpwrLines, plotEpwrLines
 import pytplot
 import akebono
 import os
 from checkEfieldAntenna import checkEfiedlAntenna
 
 # イベントの日付、開始時刻、終了時刻を入力
-date = '1990-03-06'  # イベントの日付. yyyy-mm-dd
+date = '1990-02-11'  # イベントの日付. yyyy-mm-dd
 nextDate = get_next_date(date)
-startTime = '14:06:00'  # イベントの開始時刻. hh:mm:ss
-endTime = '14:11:00'  # イベントの終了時刻. hh:mm:ss
+startTime = '17:50:00'  # イベントの開始時刻. hh:mm:ss
+endTime = '18:20:00'  # イベントの終了時刻. hh:mm:ss
 saveDir = '../plots/enent_analysis/' +\
     date[0:4]+date[5:7]+date[8:] + '_' +\
     startTime[0:2]+startTime[3:5]+startTime[6:] + '-' +\
@@ -38,13 +38,18 @@ storeBpwrLines(Bxry, date + ' ' + startTime, date + ' ' + endTime)
 
 # プロット
 # ダイナミックスペクトル&アンテナとB0の角度のプロット
+'''
 print("plot dynamic spectrum and angle_b0")
 pytplot.tlimit([date + ' ' + startTime, date + ' ' + endTime])
-pytplot.options('akb_mca_Emax_pwr', 'zrange', [1e-7, 1e2])
-pytplot.options('akb_mca_Bmax_pwr', 'zrange', [1e-5, 1e6])
-pytplot.tplot(['akb_mca_Emax_pwr', 'angle_b0_Ey', 'akb_mca_Bmax_pwr', 'angle_b0_B'],
+pytplot.options('akb_mca_Emax_pwr', opt_dict={'zrange': [1e-7, 1e2],
+                                              'yrange': [1, 2000]})
+pytplot.options('akb_mca_Bmax_pwr', opt_dict={'zrange': [1e-5, 1e6],
+                                              'yrange': [1, 2000]})
+pytplot.options('angle_b0_sBy', 'panel_size', 0.5)
+pytplot.tplot(['akb_mca_Emax_pwr', 'angle_b0_Ey', 'akb_mca_Bmax_pwr', 'angle_b0_sBy'],
               var_label=['akb_orb_inv', 'akb_orb_mlt', 'akb_orb_alt'],
               xsize=10, ysize=10, save_jpeg=saveDir+'spec_angleB0', display=False)
+
 
 # サイクロトロン周波数のプロット
 print("plot gyrofreq")
@@ -53,9 +58,10 @@ pytplot.tplot('gyrofreq',
               xsize=10, ysize=10, save_jpeg=saveDir+'gyrofreq', display=False)
 
 # 角度vs波動強度のプロット
+
 print("plot angle_b0 vs Epwr and Bpwr")
 plotAngleB0Vspwr(date, startTime, endTime, saveDir)
-
+'''
 # 各周波数で波動強度のラインプロットを作成
 print("plot Epwr and Bpwr lines")
 pytplot.tplot_options('xmargin', [0.15, 0.05])
@@ -72,6 +78,10 @@ pytplot.tplot(['akb_mca_Bpwr_ch7', 'akb_mca_Bpwr_ch8', 'akb_mca_Bpwr_ch9', 'akb_
                'akb_mca_Bpwr_ch11', 'akb_mca_Bpwr_ch12'],
               xsize=10, ysize=12, save_jpeg=saveDir+'Bpwr_lines_ch7-12', display=False)
 
+plotEpwrLines('1990-02-11 18:05:00', '1990-02-11 18:10:00')
+# test
+
+'''
 # 平均磁場強度を表示
 b0 = pytplot.get_data('akb_orb_bmdl_scaler', xarray=True)
 b0 = b0.sel(time=slice(date+' '+startTime, date+' '+endTime))
@@ -90,3 +100,4 @@ with open(saveDir+'eventInfo.txt', 'a') as f:
     for i in range(len(time)):
         f.write(str(time[i]) + ', ' + antenna[i] + '\n')
 
+'''

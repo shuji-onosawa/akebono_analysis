@@ -99,8 +99,9 @@ def store_mca_high_time_res_data(date: str = '1990-02-25',
         'pws': PWS sounder on\n
     """
     # dateを'yyyymmdd'に変換する
+    year = date[:4]
     date = datetime.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')
 
-    mca_cdf_name = '../akebono_data/vlf/mca/h1/ave0.5s/1990/ak_h1_mca_'+date+'_v02.cdf'
+    mca_cdf_name = '../akebono_data/vlf/mca/h1/ave0.5s/'+year+'/ak_h1_mca_'+date+'_v02.cdf'
     pytplot.cdf_to_tplot(mca_cdf_name, prefix='akb_mca_', get_metadata=True)
     akebono.mca_postprocessing(datatype=datatype, del_invalid_data=del_invalid_data)
