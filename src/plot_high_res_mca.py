@@ -189,8 +189,8 @@ def plot_mca_w_mgf_1day(date: str):
     ilat_mlt_ds = xr.merge([ilat_ds, mlt_ds, mlat_ds])
 
     # MLTとILATの範囲を指定
-    mlt_range = [19, 21]  # MLTの開始値と終了値を指定
-    ilat_range = [60, 80]  # ILATの開始値と終了値を指定
+    mlt_range = [18, 22]  # MLTの開始値と終了値を指定
+    ilat_range = [65, 80]  # ILATの開始値と終了値を指定
     mlat_range = [-90, 90]  # MLATの開始値と終了値を指定
 
     # プロットする時刻の範囲を取得
@@ -210,6 +210,7 @@ def plot_mca_w_mgf_1day(date: str):
     for plot_trange in plot_trange_list:
         pytplot.tlimit(plot_trange)
         save_path = save_dir+plot_trange[0][:10]+'_'+plot_trange[0][11:13]+plot_trange[0][14:16]
+        pytplot.options('akb_mca_Bmax_pwr', 'zrange', [1e-4, 1e2])
         pytplot.tplot(['akb_mca_Emax_pwr', 'angle_b0_Ey',
                        'akb_mca_Bmax_pwr', 'angle_b0_B',
                        'fce'],
@@ -217,6 +218,6 @@ def plot_mca_w_mgf_1day(date: str):
                       xsize=14, ysize=14, save_png=save_path, display=False)
 
 # 1990年2月中のデータをプロット
-for day in range(22, 29):
+for day in range(19, 22):
     date = '1990-02-'+str(day).zfill(2)
     plot_mca_w_mgf_1day(date)

@@ -49,6 +49,25 @@ after
                 this_axis.axhline(y=time_bar['location'],
                     color=np.array(time_bar.get('line_color'))/256.0, lw=time_bar.get('line_width'))
 ```
+* Silence the warning of transfrom non-nanosecond to nanosecond
+プロットしたいデータはnanosecondだけど追加x軸に指定したいデータ(軌道データとか)がnon-nanosecondの時に出る警告を消す
+```python
+def get_var_label_ticks(var_xr, times):
+    out_ticks = []
+    for time in times:
+        out_ticks.append('{:.2f}'.format(var_xr.interp(coords={'time': time}, kwargs={'fill_value': 'extrapolate', 'bounds_error': False}).values))
+    return out_ticks
+```
+->
+```python
+def get_var_label_ticks(var_xr, times):
+    out_ticks = []
+    for time in times:
+        time_ns = np.datetime64(time, 'ns')  # Convert to nanosecond precision
+        interpolated_value = var_xr.interp(coords={'time': time_ns}, kwargs={'fill_value': 'extrapolate', 'bounds_error': False}).values
+        out_ticks.append('{:.2f}'.format(interpolated_value))
+    return out_ticks
+```
 
 ## options.py
 ```python
