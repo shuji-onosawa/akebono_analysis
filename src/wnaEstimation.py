@@ -109,6 +109,24 @@ def calcAngleAtPeakPwr(halfSpinDatasetList):
         angleAtPeakPwrDict['angleAtPeakEpwrCh{}'.format(ch)] = EangleMatrix[:, ch]
         angleAtPeakPwrDict['angleAtPeakBpwrCh{}'.format(ch)] = BangleMatrix[:, ch]
 
+    # 角度のエラーを計算
+    EangleErrorAry = np.ones((len(halfSpinDatasetList)))
+    BangleErrorAry = np.ones((len(halfSpinDatasetList)))
+    BloopangleErrorAry = np.ones((len(halfSpinDatasetList)))
+    # 最初のhalfspin中、角度が何度刻みで変化するかの平均値を計算する
+    firstHalfSpinDs = halfSpinDatasetList[0]
+    EangleAry = firstHalfSpinDs['angle_b0_Ey'].values
+    BangleAry = firstHalfSpinDs['angle_b0_sBy'].values
+    BloopangleAry = firstHalfSpinDs['angle_b0_Bloop'].values
+    # 角度刻みの計算
+    EangleDiff = np.nanmean(np.abs(EangleAry[1:] - EangleAry[:-1]))
+    BangleDiff = np.nanmean(np.abs(BangleAry[1:] - BangleAry[:-1]))
+    BloopangleDiff = np.nanmean(np.abs(BloopangleAry[1:] - BloopangleAry[:-1]))
+    # dictionaryに追加
+    angleAtPeakPwrDict['EangleError'] = EangleErrorAry * EangleDiff
+    angleAtPeakPwrDict['BangleError'] = BangleErrorAry * BangleDiff
+    angleAtPeakPwrDict['BloopangleError'] = BloopangleErrorAry * BloopangleDiff
+
     return angleAtPeakPwrDict
 
 
@@ -127,7 +145,20 @@ def saveAngleAtPeakPwr(angleAtPeakPwrDict):
         # dictionary の value を書き出す
         writer.writerows(zip(*angleAtPeakPwrDict.values()))
 
-'''
+
+def readSimulatedAngleAtPeakPwr(freq, mode):
+    """
+    ../execute/pyEmax_Bmax_angle_freq-freq_mode-mode.csvからWNA列と方位角行の(θEmax, θBmax)(理論値)の行列を読み込む
+    Args:
+        freq (str): 周波数
+        mode (str): 波動モード, l or r
+    Returns:
+        angleAtPeakPwrAry (ndarray): (θEmax, θBmax)(理論値)の行列
+    """
+    csvFileName = '../execute/'+date+'/pyEmax_Bmax_angle_freq-'+freq+'_mode-'+mode+'.csv'
+
+
+
 def wnaEstimation(angleAtPeakPwrDict):
     """
     Args:
@@ -138,14 +169,21 @@ def wnaEstimation(angleAtPeakPwrDict):
     """
     wnaDict = {}
     wnaDict['Epoch'] = angleAtPeakPwrDict['Epoch']
+
+    freqList = [3.15, 5.62, 10, 17.8,
+                31.6, 56.2, 100, 178,
+                316, 562, 1000, 1780,
+                3160, 5620, 10000, 17800]
     for ch in range(16):
         EpwrPeakAngle = angleAtPeakPwrDict['angleAtPeakEpwrCh{}'.format(ch)]
         BpwrPeakAngle = angleAtPeakPwrDict['angleAtPeakBpwrCh{}'.format(ch)]
         wnaDict['angleAtPeakEpwrCh{}'.format(ch)] = EpwrPeakAngle
         wnaDict['angleAtPeakBpwrCh{}'.format(ch)] = BpwrPeakAngle
+
         # L mode 仮定時のWNA推定
         LmodeWNA = np.zeros(len(EpwrPeakAngle))
-'''
+        # ../execute/pyEmax_Bmax_angle_freq-*_mode-*.csvを配列として読み込む
+        angleFreqModeAry = np.loadtxt('../execute/pyEmax_Bmax_angle_freq-'+str(ch)+'_mode-0.csv', delimiter=',')
 
 angleAtPeackPwr = calcAngleAtPeakPwr(halfSpinDatasetList)
 # csvファイルに書き出す
