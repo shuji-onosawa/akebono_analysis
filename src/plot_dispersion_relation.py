@@ -76,5 +76,5 @@ def plotRefractionIndexVsFrequency(waveNormalAngle, save_dir):
 
 
 for wna in [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]:
-    save_dir = '../plots/'
+    save_dir = '../plots/dispersion_relation/'
     plotRefractionIndexVsFrequency(wna, save_dir)
