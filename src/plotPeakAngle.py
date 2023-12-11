@@ -17,6 +17,11 @@ axs = axs.flatten()
 for i in range(len(freqLabel)):
     axs[i].scatter(epochAry, df['angleAtPeakEpwrCh'+str(i)], marker='*', s=5, label = 'E', color='b')
     axs[i].scatter(epochAry, df['angleAtPeakBpwrCh'+str(i)], marker='*', s=5, label = 'B', color='r')
+    axs[i].errorbar(epochAry, df['angleAtPeakEpwrCh'+str(i)], yerr=df['EangleError'], fmt='*', ecolor='b', elinewidth=0.5, capsize=3)
+    if i < 10:
+        axs[i].errorbar(epochAry, df['angleAtPeakBpwrCh'+str(i)], yerr=df['BangleError'], fmt='*', ecolor='r', elinewidth=0.5, capsize=3)
+    else:
+        axs[i].errorbar(epochAry, df['angleAtPeakBpwrCh'+str(i)], yerr=df['BloopangleError'], fmt='*', ecolor='r', elinewidth=0.5, capsize=3)
     axs[i].set_xlabel('time [UT]')
     axs[i].set_ylabel('Angle [deg]\n@'+freqLabel[i])
     axs[i].set_ylim(0, 180)
