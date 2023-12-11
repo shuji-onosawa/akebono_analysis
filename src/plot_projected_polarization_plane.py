@@ -7,12 +7,17 @@ import csv
 
 def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     """
-    theta: angle between spin plane normal vector and z axis
-    phi: angle between projection vector of spin plane normal vector
-    on x-y plane and x axis
-    wna: wave normal angle
-    freq: wave frequency
-    mode: 'l' or 'r'
+    入力パラメータを用いてプラズマ波動の偏波面を計算し、衛星のスピン面でどのように観測されるかを模擬する。
+    電場強度、磁場強度が最大になるときの各アンテナの角度EmaxAngle, BmaxAngleを返す。
+    Args:
+        theta: angle between spin plane normal vector and z axis
+        phi: angle between projection vector of spin plane normal vector
+        on x-y plane and x axis
+        wna: wave normal angle
+        freq: wave frequency
+        mode: 'l' or 'r'
+    Return:
+        EmaxAngleRounded, BmaxAngleRounded
     """
     theta_rad = np.deg2rad(theta)
     phi_rad = np.deg2rad(phi)
@@ -160,46 +165,49 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     if Bmax_angle < 0:
         Bmax_angle += 180
     # 第2位を四捨五入した値を返す
-    return (round(Emax_angle[0], 1), round(Bmax_angle[0], 1))
+    EmaxAngleRounded = round(Emax_angle[0], 1)
+    BmaxAngleRounded = round(Bmax_angle[0], 1)
+    return EmaxAngleRounded, BmaxAngleRounded
+
 
 
 wna_list = [0, 10, 20, 30, 40, 50, 60, 70, 80, 89, 100, 110, 120, 130, 140, 150, 160, 170, 180]
 phi_list = [0, 10, 20, 30, 40, 50, 60, 70, 80, 89, 100, 110, 120, 130, 140, 150, 160, 170, 180]
 freqList = [3.16, 5.62, 10, 17.8, 31.6, 56.2, 100, 178, 316, 562]
+saveDir = '../execute/1990-02-11/'
+
 # calc for mode='r
 for freq in freqList:
     mode = 'r'
     theta = 123.75
-    saveDir = '../execute/0211/'
     os.makedirs(saveDir, exist_ok=True)
     saveName = saveDir+'pyEmax_Bmax_angle_freq-{}_mode-{}.csv'
     with open(saveName.format(freq, mode), 'w') as f:
         writer = csv.writer(f)
         writer.writerow([""]+phi_list)
         for wna in wna_list:
-            tuple_list = []
+            anglePairsList = []
             for phi in phi_list:
                 wna = wna
                 freq = freq
-                angle_tuple = plot_projected_polarization_plane(theta, phi, wna, freq, mode)
-                tuple_list.append(angle_tuple)
-            writer.writerow([wna]+tuple_list)
+                EmaxAngle, BmaxAngle = plot_projected_polarization_plane(theta, phi, wna, freq, mode)
+                anglePairsList.append(str(EmaxAngle)+'v'+str(BmaxAngle))
+            writer.writerow([wna]+anglePairsList)
 
 # calc for mode='l'
 for freq in freqList:
     mode = 'l'
     theta = 123.75
-    saveDir = '../execute/0211/'
     os.makedirs(saveDir, exist_ok=True)
     saveName = saveDir+'pyEmax_Bmax_angle_freq-{}_mode-{}.csv'
     with open(saveName.format(freq, mode), 'w') as f:
         writer = csv.writer(f)
         writer.writerow([""]+phi_list)
         for wna in wna_list:
-            tuple_list = []
+            anglePairsList = []
             for phi in phi_list:
                 wna = wna
                 freq = freq
-                angle_tuple = plot_projected_polarization_plane(theta, phi, wna, freq, mode)
-                tuple_list.append(angle_tuple)
-            writer.writerow([wna]+tuple_list)
+                EmaxAngle, BmaxAngle = plot_projected_polarization_plane(theta, phi, wna, freq, mode)
+                anglePairsList.append(str(EmaxAngle)+'v'+str(BmaxAngle))
+            writer.writerow([wna]+anglePairsList)
