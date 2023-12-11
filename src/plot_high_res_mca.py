@@ -216,8 +216,3 @@ def plot_mca_w_mgf_1day(date: str):
                        'fce'],
                       var_label=['akb_orb_alt', 'akb_orb_inv', 'akb_orb_mlt'],
                       xsize=14, ysize=14, save_png=save_path, display=False)
-
-# 1990年2月中のデータをプロット
-for day in range(19, 22):
-    date = '1990-02-'+str(day).zfill(2)
-    plot_mca_w_mgf_1day(date)
