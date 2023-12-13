@@ -1,3 +1,4 @@
+## 波数ベクトル推定手法
 z軸を背景磁場$\vec B_0$の向きとする。
 xz面に波数ベクトルがあるようにx軸をとる。
 y軸は左手系をなすようにとる。
@@ -56,3 +57,49 @@ $$
 \cos \theta_{B_{max}} & = \frac{\vec{B_{\text {spin }(t_{max})}}}{|\vec{B_{\text {spin }(t_{max})}}|} \cdot \vec{e_z}\\
 \end{aligned}
 $$
+
+観測データから算出した$\theta_{E_{max}}, \theta_{B_{max}}$と、模擬観測データから算出した$\theta_{E_{max}}, \theta_{B_{max}}$を比較することで、波数ベクトルの推定を行う。
+
+## 背景磁場とアンテナのなす角の算出方法
+背景磁場$\vec{B_0}$とアンテナベクトル$\vec{a}$のなす角を$θ$とする。スピン面の法線ベクトルを$\vec{n}$とする。それぞれのベクトルは以下のように表わされる。
+$$
+\begin{aligned}
+\vec{B_0} & = B_0 (0, 0, 1)\\
+& = B_0 \vec{e_z} \\
+\vec{a} & = (x_a, y_a, z_a)\\
+\vec{n} & = (sin\theta_n cos\phi_n, sin\theta_n sin\phi_n, cos\theta_n)\\
+\end{aligned}
+$$
+$\theta$は以下のように定義する。
+$$
+\begin{aligned}
+\theta =
+\begin{cases}
+    arccos(\vec{a} \cdot \vec{B_0}) & if \ \ \vec{n} \cdot (\vec{e_z} \times \vec{a}) > 0 \\
+    \ \pi - arccos(\vec{a} \cdot \vec{B_0}) & if \ \ \vec{n} \cdot (\vec{e_z} \times \vec{a}) < 0 \\
+\end{cases}
+\end{aligned}
+$$
+
+### メモ
+$$
+\begin{aligned}
+\vec{n} \cdot (\vec{e_z} \times \vec{a}) & = \vec{n} \cdot \vec{e_z} \times \vec{a}\\
+& = \vec{n} \cdot ((0, 0, 1) \times (x_a, y_a, z_a))\\
+& = (sin\theta_n cos\phi_n, sin\theta_n sin\phi_n, cos\theta_n) \cdot (-y_a, x_a, 0)\\
+& = sin\theta_n (-cos\phi_n y_a + sin\phi_n x_a)\\
+\end{aligned}
+$$
+$0 < \theta < \pi $ なので $\vec{n} \cdot (\vec{e_z} \times \vec{a})$ の正負は$(-cos\phi_n y_a + sin\phi_n x_a)$の正負で決まる。\
+$(-cos\phi_n y_a + sin\phi_n x_a) > 0$ となる場合を考える。
+$$
+\begin{aligned}
+-cos\phi_n y_a + sin\phi_n x_a & > 0\\
+sin\phi_n x_a & > cos\phi_n y_a\\
+\begin{aligned}
+&[i] \ 0 < \phi_n < \frac{\pi}{2} or \frac{3\pi}{2} < \phi_n < 2\pi  \Rightarrow y_a < x_a \tan\phi_n\\
+&[ii] \ \frac{\pi}{2} < \phi_n < \frac{3\pi}{2}  \Rightarrow y_a > x_a \tan\phi_n\\
+\end{aligned}
+\end{aligned}
+$$
+[i], [ii] のいずれの場合を考えても、$(-cos\phi_n y_a + sin\phi_n x_a) > 0$ となるのは、$\vec{e_z}, \vec{n}$ を含む平面より $\phi_n$ が小さい領域に $\vec{a}$ があるときである。
