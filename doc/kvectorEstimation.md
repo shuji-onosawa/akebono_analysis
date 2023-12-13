@@ -90,7 +90,7 @@ $$
 & = sin\theta_n (-cos\phi_n y_a + sin\phi_n x_a)\\
 \end{aligned}
 $$
-$0 < \theta < \pi $ なので $\vec{n} \cdot (\vec{e_z} \times \vec{a})$ の正負は$(-cos\phi_n y_a + sin\phi_n x_a)$の正負で決まる。\
+$ 0 < \theta < \pi $ なので $\vec{n} \cdot (\vec{e_z} \times \vec{a})$ の正負は$(-cos\phi_n y_a + sin\phi_n x_a)$の正負で決まる。\
 $(-cos\phi_n y_a + sin\phi_n x_a) > 0$ となる場合を考える。
 $$
 \begin{aligned}
