@@ -173,7 +173,11 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
 
 wna_list = [0, 10, 20, 30, 40, 50, 60, 70, 80, 89, 100, 110, 120, 130, 140, 150, 160, 170, 180]
 phi_list = [0, 10, 20, 30, 40, 50, 60, 70, 80, 89, 100, 110, 120, 130, 140, 150, 160, 170, 180]
-freqList = [3.16, 5.62, 10, 17.8, 31.6, 56.2, 100, 178, 316, 562]
+freqList = [3.16, 5.62, 10, 17.8,
+            31.6, 56.2, 100, 178,
+            316, 562, 1000, 1780,
+            3160, 5620, 10000, 17800]
+
 saveDir = '../execute/1990-02-11/'
 
 # calc for mode='r
@@ -185,14 +189,28 @@ for freq in freqList:
     with open(saveName.format(freq, mode), 'w') as f:
         writer = csv.writer(f)
         writer.writerow([""]+phi_list)
-        for wna in wna_list:
-            anglePairsList = []
-            for phi in phi_list:
-                wna = wna
-                freq = freq
-                EmaxAngle, BmaxAngle = plot_projected_polarization_plane(theta, phi, wna, freq, mode)
-                anglePairsList.append(str(EmaxAngle)+'v'+str(BmaxAngle))
-            writer.writerow([wna]+anglePairsList)
+        # wna_listとphi_listの最初の値を使って計算し、返り値がnanの場合はnanで埋めたcsvを作成する
+        # このとき、nanの値は文字列'nan'として保存する
+        wna = wna_list[0]
+        phi = phi_list[0]
+        EmaxAngleTest, BmaxAngleTest = plot_projected_polarization_plane(theta, phi, wna, freq, mode)
+        if np.isnan(EmaxAngleTest) == True:
+            print('No valid value for', f'freq={freq}, mode={mode}')
+            for wna in wna_list:
+                anglePairsList = []
+                for phi in phi_list:
+                    anglePairsList.append('nan'+'v'+'nan')
+                writer.writerow([wna]+anglePairsList)
+        # 返り値がnanでない場合は、計算を行う
+        else:
+            for wna in wna_list:
+                anglePairsList = []
+                for phi in phi_list:
+                    wna = wna
+                    freq = freq
+                    EmaxAngle, BmaxAngle = plot_projected_polarization_plane(theta, phi, wna, freq, mode)
+                    anglePairsList.append(str(EmaxAngle)+'v'+str(BmaxAngle))
+                writer.writerow([wna]+anglePairsList)
 
 # calc for mode='l'
 for freq in freqList:
@@ -203,11 +221,15 @@ for freq in freqList:
     with open(saveName.format(freq, mode), 'w') as f:
         writer = csv.writer(f)
         writer.writerow([""]+phi_list)
-        for wna in wna_list:
-            anglePairsList = []
-            for phi in phi_list:
-                wna = wna
-                freq = freq
-                EmaxAngle, BmaxAngle = plot_projected_polarization_plane(theta, phi, wna, freq, mode)
-                anglePairsList.append(str(EmaxAngle)+'v'+str(BmaxAngle))
-            writer.writerow([wna]+anglePairsList)
+        # wna_listとphi_listの最初の値を使って計算し、返り値がnanの場合はnanで埋めたcsvを作成する
+        # このとき、nanの値は文字列'nan'として保存する
+        wna = wna_list[0]
+        phi = phi_list[0]
+        EmaxAngleTest, BmaxAngleTest = plot_projected_polarization_plane(theta, phi, wna, freq, mode)
+        if np.isnan(EmaxAngleTest) == True:
+            print('No valid value for', f'freq={freq}, mode={mode}')
+            for wna in wna_list:
+                anglePairsList = []
+                for phi in phi_list:
+                    anglePairsList.append('nan'+'v'+'nan')
+                writer.writerow([wna]+anglePairsList)
