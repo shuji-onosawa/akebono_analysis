@@ -153,10 +153,42 @@ def readSimulatedAngleAtPeakPwr(freq, mode):
         freq (str): 周波数
         mode (str): 波動モード, l or r
     Returns:
-        angleAtPeakPwrAry (ndarray): (θEmax, θBmax)(理論値)の行列
+        simResultDict (dict): wna行のheader、方位角列のheader、模擬観測値θEmaxの行列 (WNA行, 方位角列)、模擬観測値θBmaxの行列 (WNA行, 方位角列)
     """
     csvFileName = '../execute/'+date+'/pyEmax_Bmax_angle_freq-'+freq+'_mode-'+mode+'.csv'
 
+    data = []
+    wnaList = []
+    thetaEmaxList = []
+    thetaBmaxList = []
+
+    # csvファイルを読み込む
+    with open(csvFileName, 'r') as f:
+        reader = csv.reader(f)
+        # headrをスキップ
+        header = next(reader)
+        azimathAngleList = header[1:]
+        azimathAngleList = [float(angle) for angle in azimathAngleList]
+        # 各行を読み込む
+        for row in reader:
+            wnaList.append(float(row[0]))
+            row = row[1:]
+            thetaEmaxRow = []
+            thetaBmaxRow = []
+            for cell in row:
+                thetaEmax, thetaBmax = cell.split('v')
+                thetaEmaxRow.append(float(thetaEmax))
+                thetaBmaxRow.append(float(thetaBmax))
+            thetaEmaxList.append(thetaEmaxRow)
+            thetaBmaxList.append(thetaBmaxRow)
+    # dictionaryに追加
+    simResultDict = {}
+    simResultDict['wna'] = np.array(wnaList)
+    simResultDict['azimathAngle'] = np.array(azimathAngleList)
+    simResultDict['thetaEmax'] = np.array(thetaEmaxList)
+    simResultDict['thetaBmax'] = np.array(thetaBmaxList)
+
+    return simResultDict
 
 
 def wnaEstimation(angleAtPeakPwrDict):
@@ -182,8 +214,8 @@ def wnaEstimation(angleAtPeakPwrDict):
 
         # L mode 仮定時のWNA推定
         LmodeWNA = np.zeros(len(EpwrPeakAngle))
-        # ../execute/pyEmax_Bmax_angle_freq-*_mode-*.csvを配列として読み込む
-        angleFreqModeAry = np.loadtxt('../execute/pyEmax_Bmax_angle_freq-'+str(ch)+'_mode-0.csv', delimiter=',')
+        # 模擬観測値の読み込み
+        simResultDict = readSimulatedAngleAtPeakPwr(str(freqList[ch]), 'l')
 
 angleAtPeackPwr = calcAngleAtPeakPwr(halfSpinDatasetList)
 # csvファイルに書き出す
