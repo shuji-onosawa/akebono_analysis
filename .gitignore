@@ -1,7 +1,6 @@
 akebono_data/
 omni_data/
 plots/
-execute/
 .venv
 .python-version
 src/generate_commit_message.py
