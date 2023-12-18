@@ -178,7 +178,7 @@ freqList = [3.16, 5.62, 10, 17.8,
             316, 562, 1000, 1780,
             3160, 5620, 10000, 17800]
 
-saveDir = '../execute/1990-02-11/'
+saveDir = '../execute/SimulatedObservation/'
 
 # calc for mode='r
 for freq in freqList:
