@@ -19,6 +19,28 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     Return:
         EmaxAngleRounded, BmaxAngleRounded
     """
+    print('calc for these parameters:')
+    print('theta:', theta)
+    print('phi:', phi)
+    print('wna:', wna)
+    print('freq:', freq)
+    print('mode:', mode)
+
+    # calc wave field vectors
+    wna = wna
+    freq = freq  # Hz
+    angle_freq = 2*np.pi*freq
+
+    k_vec = np.array([np.sin(wna*np.pi/180), 0, np.cos(wna*np.pi/180)])
+    n_L, n_R, S, D, P = calc_dispersion_relation(angle_freq, wna)
+    if mode == 'l':
+        # left hand circular polarization
+        Ey_Ex, Ez_Ex, By_Bx, Bz_Bx, _ = calc_amp_ratio(n_L, S, D, P, wna)
+    elif mode == 'r':
+        # right hand circular polarization
+        Ey_Ex, Ez_Ex, By_Bx, Bz_Bx, _ = calc_amp_ratio(n_R, S, D, P, wna)
+
+    # calc projection of wave polarization plane on satellite's spin plane
     theta_rad = np.deg2rad(theta)
     phi_rad = np.deg2rad(phi)
 
@@ -36,28 +58,37 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
                             np.cos(phase)*spin_plane_unit_vec1[1] + np.sin(phase)*spin_plane_unit_vec2[1],
                             np.cos(phase)*spin_plane_unit_vec1[2] + np.sin(phase)*spin_plane_unit_vec2[2]])
 
-    print('calc for these parameters:')
-    print('theta:', theta)
-    print('phi:', phi)
-    print('wna:', wna)
-    print('freq:', freq)
-    print('mode:', mode)
+    Evec = np.array([np.cos(phase), -Ey_Ex*np.sin(phase), Ez_Ex*np.cos(phase)])
+    Bvec = np.array([np.cos(phase), -By_Bx*np.sin(phase), Bz_Bx*np.cos(phase)])
+    # calc projection of E field on spin plane
+    EvecProjVec = np.zeros((len(phase), 3))
+    for i in range(len(phase)):
+        EvecDotAntenna = np.dot(antenna_vec[:, i], Evec)
+        EvecProjVec[i] = np.nanmax(EvecDotAntenna)*antenna_vec[:, i]
+    # calc projection of B field on spin plane
+    BvecProjVec = np.zeros((len(phase), 3))
+    for i in range(len(phase)):
+        BvecDotAntenna = np.dot(antenna_vec[:, i], Bvec)
+        BvecProjVec[i] = np.nanmax(BvecDotAntenna)*antenna_vec[:, i]
 
-    # wave polarization plane
-    wna = wna
-    freq = freq  # Hz
-    angle_freq = 2*np.pi*freq
+    # angle between z axis and field vectors
+    # calc angle between z axis and E field vectors
+    normarizedEvecProjVec = EvecProjVec/np.linalg.norm(EvecProjVec, axis=1).reshape(-1, 1)
+    angle_E_b0 = np.arccos(np.dot(normarizedEvecProjVec, np.array([0, 0, 1]).reshape(3, 1)))
+    for i in range(len(angle_E_b0)):
+        if np.dot(normarizedEvecProjVec[i], spin_plane_unit_vec2) < 0:
+            angle_E_b0[i] = -angle_E_b0[i]
+    # calc angle between z axis and B field vectors
+    normarizedBvecProjVec = BvecProjVec/np.linalg.norm(BvecProjVec, axis=1).reshape(-1, 1)
+    angle_B_b0 = np.arccos(np.dot(normarizedBvecProjVec, np.array([0, 0, 1]).reshape(3, 1)))
+    for i in range(len(angle_B_b0)):
+        if np.dot(normarizedBvecProjVec[i], spin_plane_unit_vec2) < 0:
+            angle_B_b0[i] = -angle_B_b0[i]
 
-    k_vec = np.array([np.sin(wna*np.pi/180), 0, np.cos(wna*np.pi/180)])
-    n_L, n_R, S, D, P = calc_dispersion_relation(angle_freq, wna)
-    print('n_L:', n_L)
-    print('n_R:', n_R)
-    if mode == 'l':
-        # left hand circular polarization
-        Ey_Ex, Ez_Ex, By_Bx, Bz_Bx, E_cB = calc_amp_ratio(n_L, S, D, P, wna)
-    elif mode == 'r':
-        # right hand circular polarization
-        Ey_Ex, Ez_Ex, By_Bx, Bz_Bx, E_cB = calc_amp_ratio(n_R, S, D, P, wna)
+    # plot angle dependence of power
+    # calc field vector norm
+    EvecProjVecNorm = np.linalg.norm(EvecProjVec, axis=1)
+    BvecProjVecNorm = np.linalg.norm(BvecProjVec, axis=1)
 
     # 3D plot of spin plane and wave polarization plane
     fig = plt.figure(figsize=(8, 8))
@@ -88,19 +119,7 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     ax.set_aspect('equal')
     ax.legend()
 
-    # projection of wave polarization plane on spin plane
-    Evec = np.array([np.cos(phase), -Ey_Ex*np.sin(phase), Ez_Ex*np.cos(phase)])
-    Bvec = np.array([np.cos(phase), -By_Bx*np.sin(phase), Bz_Bx*np.cos(phase)])
-    # calc projection of E field on spin plane
-    EvecProjVec = np.zeros((len(phase), 3))
-    for i in range(len(phase)):
-        EvecDotAntenna = np.dot(antenna_vec[:, i], Evec)
-        EvecProjVec[i] = np.nanmax(EvecDotAntenna)*antenna_vec[:, i]
-    # calc projection of B field on spin plane
-    BvecProjVec = np.zeros((len(phase), 3))
-    for i in range(len(phase)):
-        BvecDotAntenna = np.dot(antenna_vec[:, i], Bvec)
-        BvecProjVec[i] = np.nanmax(BvecDotAntenna)*antenna_vec[:, i]
+    # plot projected polarization plane
     ax = fig.add_subplot(222)
     ax.scatter(np.dot(EvecProjVec, spin_plane_unit_vec1),
                np.dot(EvecProjVec, spin_plane_unit_vec2),
@@ -114,25 +133,7 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     ax.set_ylabel('yellow')
     ax.set_aspect('equal')
 
-    # angle between z axis and field vectors
-    # calc angle between z axis and E field vectors
-    normarizedEvecProjVec = EvecProjVec/np.linalg.norm(EvecProjVec, axis=1).reshape(-1, 1)
-    angle_E_b0 = np.arccos(np.dot(normarizedEvecProjVec, np.array([0, 0, 1]).reshape(3, 1)))
-    for i in range(len(angle_E_b0)):
-        if np.dot(normarizedEvecProjVec[i], spin_plane_unit_vec2) < 0:
-            angle_E_b0[i] = -angle_E_b0[i]
-    # calc angle between z axis and B field vectors
-    normarizedBvecProjVec = BvecProjVec/np.linalg.norm(BvecProjVec, axis=1).reshape(-1, 1)
-    angle_B_b0 = np.arccos(np.dot(normarizedBvecProjVec, np.array([0, 0, 1]).reshape(3, 1)))
-    for i in range(len(angle_B_b0)):
-        if np.dot(normarizedBvecProjVec[i], spin_plane_unit_vec2) < 0:
-            angle_B_b0[i] = -angle_B_b0[i]
-
     # plot angle dependence of power
-    # calc field vector norm
-    EvecProjVecNorm = np.linalg.norm(EvecProjVec, axis=1)
-    BvecProjVecNorm = np.linalg.norm(BvecProjVec, axis=1)
-
     ax = fig.add_subplot(223)
     ax.scatter(np.rad2deg(angle_E_b0), EvecProjVecNorm/np.nanmax(EvecProjVecNorm),
                color='r', label='E field', s=2.0)
@@ -146,7 +147,6 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     ax.set_xticks([0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5, 180])
     # legend position
     ax.legend(loc='lower right')
-    plt.show
     if mode == 'l':
         savefig_dir = '../plots/projected_polarization_plane/left_hand_circular/freq'+str(freq)+'/wna'+str(wna)+'theta'+str(theta)+'/'
     elif mode == 'r':

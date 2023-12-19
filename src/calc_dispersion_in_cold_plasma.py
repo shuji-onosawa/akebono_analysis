@@ -113,11 +113,17 @@ def calc_dispersion_relation(w, theta):
         return n_L, n_R, S, D, P
 
 
-def calc_amp_ratio(n, S, D, P, theta):
+def calc_amp_ratio(n, S, D, P, theta) -> tuple(np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray):
     '''
-    !!!caution!!!
-    n means squared refractive index
-    theta: wave normal angle, 0 - 90 (180) [deg]
+    Args:
+        n: squared refractive index, float or ndarray
+        S: (R+L)/2, float or ndarray
+        D: (R-L)/2, float or ndarray
+        P: 1-Xe-Xh-Xhe-Xo, float or ndarray
+        theta: wave normal angle, 0 - 90 (180) [deg], float or ndarray
+    Returns:
+        Ey_to_Ex, Ez_to_Ex, By_to_Bx, Bz_to_Bx, E_to_cB
+        (All of them are ndarray)
     '''
     if theta == 0:
         cos = 1
