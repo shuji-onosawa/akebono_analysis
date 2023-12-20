@@ -76,8 +76,8 @@ $$
 \begin{aligned}
 \theta =
 \begin{cases}
-    arccos(\vec{a} \cdot \vec{B_0}) & if \ \ \vec{n} \cdot (\vec{e_z} \times \vec{a}) > 0 \\
-    \ \pi - arccos(\vec{a} \cdot \vec{B_0}) & if \ \ \vec{n} \cdot (\vec{e_z} \times \vec{a}) < 0 \\
+    arccos(\vec{a} \cdot \vec{B_0}) & if \ \ \vec{n} \cdot (\vec{e_z} \times \vec{a}) < 0 \\
+    \ - arccos(\vec{a} \cdot \vec{B_0}) & if \ \ \vec{n} \cdot (\vec{e_z} \times \vec{a}) > 0 \\
 \end{cases}
 \end{aligned}
 $$
