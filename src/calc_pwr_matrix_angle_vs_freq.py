@@ -1,5 +1,6 @@
 import pytplot
-from store_high_time_res_spectrum_data import store_mca_high_time_res_data, get_mgf_with_angle_xry
+from store_high_time_res_spectrum_data import store_mca_high_time_res_data
+from store_mgf_data import get_mgf_with_angle_xry
 import numpy as np
 import xarray as xr
 
