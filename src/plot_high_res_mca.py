@@ -5,7 +5,7 @@ import pytplot
 from calc_pwr_matrix_angle_vs_freq import make_wave_mgf_dataset
 from utilities import get_next_date
 import akebono
-
+from store_mgf_data import store_angle_b0
 
 def get_plot_trange_list(ilat_mlt_ds, mlt_range, ilat_range, mlat_range=[-90, 90]):
     '''
@@ -74,47 +74,6 @@ def get_plot_trange_list(ilat_mlt_ds, mlt_range, ilat_range, mlat_range=[-90, 90
         plot_trange_list[i][0] = plot_trange_list[i][0].astype('M8[ns]').astype(str)
         plot_trange_list[i][1] = plot_trange_list[i][1].astype('M8[ns]').astype(str)
     return plot_trange_list
-
-
-def preprocess_mgf_angle(wave_mgf_ds: xr.Dataset):
-    '''
-    wave_mgf_dsに含まれる角度データを前処理する関数
-    '''
-    angle_b0_Ey = wave_mgf_ds['angle_b0_Ey']
-    angle_b0_sBy = wave_mgf_ds['angle_b0_sBy']
-    angle_b0_Bloop = wave_mgf_ds['angle_b0_Bloop']
-
-    angle_b0_Ey = angle_b0_Ey.where(angle_b0_Ey.values > 0, angle_b0_Ey.values+180)
-    angle_b0_sBy = angle_b0_sBy.where(angle_b0_sBy.values > 0, angle_b0_sBy.values+180)
-    angle_b0_Bloop = angle_b0_Bloop.where(angle_b0_Bloop.values> 0, angle_b0_Bloop.values+180)
-
-    return angle_b0_Ey, angle_b0_sBy, angle_b0_Bloop
-
-
-def store_angle_b0(wave_mgf_ds: xr.Dataset):
-    angleB0Ey, angleB0sBy, angleB0Bloop = preprocess_mgf_angle(wave_mgf_ds)
-    pytplot.store_data('angle_b0_Ey',
-                       data={'x': angleB0Ey['Epoch'].data,
-                             'y': angleB0Ey.data})
-    pytplot.store_data('angle_b0_sBy',
-                       data={'x': angleB0sBy['Epoch'].data,
-                             'y': angleB0sBy.data})
-    pytplot.store_data('angle_b0_Bloop',
-                       data={'x': angleB0Bloop['Epoch'].data,
-                             'y': angleB0Bloop.data})
-
-    pytplot.options('angle_b0_Ey',
-                    opt_dict={'yrange': [0, 180], 'color': 'k', 'marker': '.', 'line_style': None})
-    pytplot.options('angle_b0_sBy',
-                    opt_dict={'yrange': [0, 180], 'marker': '.', 'line_style': None})
-    pytplot.options('angle_b0_Bloop',
-                    opt_dict={'yrange': [0, 180], 'marker': '.', 'line_style': None})
-    pytplot.timebar(t=90,
-                    varname=['angle_b0_Ey', 'angle_b0_sBy', 'angle_b0_Bloop'],
-                    databar=True)
-    pytplot.store_data('angle_b0_B', data=['angle_b0_Bloop', 'angle_b0_sBy'])
-    pytplot.options('angle_b0_B', 'color', ['k', 'r']) # red: sBy, black: Bloop
-    pytplot.options(['angle_b0_Ey', 'angle_b0_B'], 'panel_size', 0.5)
 
 
 def store_gyrofreq():
