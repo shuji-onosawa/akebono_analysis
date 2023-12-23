@@ -53,7 +53,7 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     spin_plane_unit_vec2 = np.array([-np.sin(phi_rad), np.cos(phi_rad), 0])
 
     phase = np.linspace(0, 2*np.pi, 360, endpoint=False)
-
+    # TODO: 任意の方向のアンテナベクトルを計算できるようにする
     antenna_vec = np.array([np.cos(phase)*spin_plane_unit_vec1[0] + np.sin(phase)*spin_plane_unit_vec2[0],
                             np.cos(phase)*spin_plane_unit_vec1[1] + np.sin(phase)*spin_plane_unit_vec2[1],
                             np.cos(phase)*spin_plane_unit_vec1[2] + np.sin(phase)*spin_plane_unit_vec2[2]])
@@ -119,7 +119,7 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     ax.set_aspect('equal')
     ax.legend()
 
-    # plot projected polarization plane
+    # scatter plot projected polarization plane
     ax = fig.add_subplot(222)
     ax.scatter(np.dot(EvecProjVec, spin_plane_unit_vec1),
                np.dot(EvecProjVec, spin_plane_unit_vec2),
@@ -133,7 +133,7 @@ def plot_projected_polarization_plane(theta, phi, wna, freq, mode='l'):
     ax.set_ylabel('yellow')
     ax.set_aspect('equal')
 
-    # plot angle dependence of power
+    # scatter plot angle dependence of power
     ax = fig.add_subplot(223)
     ax.scatter(np.rad2deg(angle_E_b0), EvecProjVecNorm/np.nanmax(EvecProjVecNorm),
                color='r', label='E field', s=2.0)
