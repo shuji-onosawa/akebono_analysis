@@ -7,7 +7,7 @@ import numpy as np
 from utilities import find_zero_cross_idx
 import csv
 import os
-
+from plotPeakAngle import plotPeakAngle
 
 def split_dataset_into_half_spins(date, start_time, end_time):
     # Convert input times to datetime format
@@ -25,13 +25,25 @@ def split_dataset_into_half_spins(date, start_time, end_time):
     half_spin_idx_range_list = []
 
     if pos_to_neg_idx[0] > neg_to_pos_idx[0]:
-        for i in range(len(pos_to_neg_idx) - 1):
-            half_spin_idx_range_list.append([neg_to_pos_idx[i] + 1, pos_to_neg_idx[i] + 1])
-            half_spin_idx_range_list.append([pos_to_neg_idx[i] + 1, neg_to_pos_idx[i + 1] + 1])
-    else:
-        for i in range(len(pos_to_neg_idx)):
-            half_spin_idx_range_list.append([pos_to_neg_idx[i] + 1, neg_to_pos_idx[i] + 1])
-            half_spin_idx_range_list.append([neg_to_pos_idx[i] + 1, pos_to_neg_idx[i + 1] + 1])
+        if pos_to_neg_idx[-1] > neg_to_pos_idx[-1]:
+            for i in range(len(neg_to_pos_idx) - 1):
+                half_spin_idx_range_list.append([neg_to_pos_idx[i] + 1, pos_to_neg_idx[i] + 1])
+                half_spin_idx_range_list.append([pos_to_neg_idx[i] + 1, neg_to_pos_idx[i + 1] + 1])
+            half_spin_idx_range_list.append([neg_to_pos_idx[-1] + 1, pos_to_neg_idx[-1] + 1])
+        elif pos_to_neg_idx[-1] < neg_to_pos_idx[-1]:
+            for i in range(len(pos_to_neg_idx)):
+                half_spin_idx_range_list.append([neg_to_pos_idx[i] + 1, pos_to_neg_idx[i] + 1])
+                half_spin_idx_range_list.append([pos_to_neg_idx[i] + 1, neg_to_pos_idx[i + 1] + 1])
+    elif pos_to_neg_idx[0] < neg_to_pos_idx[0]:
+        if pos_to_neg_idx[-1] > neg_to_pos_idx[-1]:
+            for i in range(len(neg_to_pos_idx)):
+                half_spin_idx_range_list.append([pos_to_neg_idx[i] + 1, neg_to_pos_idx[i] + 1])
+                half_spin_idx_range_list.append([neg_to_pos_idx[i] + 1, pos_to_neg_idx[i + 1] + 1])
+        elif pos_to_neg_idx[-1] < neg_to_pos_idx[-1]:
+            for i in range(len(pos_to_neg_idx) - 1):
+                half_spin_idx_range_list.append([pos_to_neg_idx[i] + 1, neg_to_pos_idx[i] + 1])
+                half_spin_idx_range_list.append([neg_to_pos_idx[i] + 1, pos_to_neg_idx[i + 1] + 1])
+            half_spin_idx_range_list.append([pos_to_neg_idx[-1] + 1, neg_to_pos_idx[-1] + 1])
 
     # Split dataset into half spin
     half_spin_dataset_list = []
@@ -43,28 +55,29 @@ def split_dataset_into_half_spins(date, start_time, end_time):
     return half_spin_dataset_list
 
 
-def getAngleAtPeakPwr(angleAry, pwrAry):
+def getAngleAtPeakPwr(timeAry, angleAry, pwrAry):
     """
     Args:
+        timeAry (1D ndarray): 時刻の配列
         angleAry (1D ndarray): 角度の配列
         pwrAry (1D ndarray): 強度の配列
     Returns:
-        angleAtPeakPwr (float): 最大値の角度
+        angleAtPeakPwrList (List): 最大値の角度
+        timeAtPeakPwrList (List): 最大値の時刻
     """
-    # pwrAry にnanが含まれる場合は、nanを返す
-    if np.isnan(pwrAry).any():
-        angleAtPeakPwr = np.nan
-        return angleAtPeakPwr
-    # pwrAry にnanが含まれない場合は、最大値の角度を返す
-    maxValue = np.max(pwrAry)
+    maxValue = np.nanmax(pwrAry)
     maxIdx = np.where(pwrAry == maxValue)[0]
-    # もしmaxIdxが1つの場合は、そのインデックスの角度を返す
-    if len(maxIdx) == 1:
-        angleAtPeakPwr = angleAry[maxIdx]
-    # もしmaxIdxが複数の場合は、nanを返す
-    else:
-        angleAtPeakPwr = np.nan
-    return angleAtPeakPwr
+
+    # maxIdxが空の場合は、nanを返す
+    if len(maxIdx) == 0:
+        angleAtPeakPwr = [np.nan]
+        timeAtPeakPwr = [np.nan]
+        return angleAtPeakPwr, timeAtPeakPwr
+
+    angleAtPeakPwr = angleAry[maxIdx].tolist()
+    timeAtPeakPwr = timeAry[maxIdx].tolist()
+
+    return angleAtPeakPwr, timeAtPeakPwr
 
 
 def calcAngleAtPeakPwr(halfSpinDatasetList):
@@ -77,51 +90,35 @@ def calcAngleAtPeakPwr(halfSpinDatasetList):
     """
     angleAtPeakPwrDict = {}
 
-    epochAry = np.zeros(len(halfSpinDatasetList))
-    EangleMatrix = np.zeros((len(halfSpinDatasetList), 16)) # mcaのチャンネルは全部で16個
-    BangleMatrix = np.zeros((len(halfSpinDatasetList), 16)) # mcaのチャンネルは全部で16個
-    for i in range(len(halfSpinDatasetList)):
-        epoch = halfSpinDatasetList[i].coords['Epoch'].values[0]
-        epochAry[i] = epoch
-
-        EpwrAry = halfSpinDatasetList[i]['akb_mca_Emax_pwr'].values
-        BpwrAry = halfSpinDatasetList[i]['akb_mca_Bmax_pwr'].values
-        EangleAry = halfSpinDatasetList[i]['angle_b0_Ey'].values
-        sByangleAry = halfSpinDatasetList[i]['angle_b0_sBy'].values
-        BloopangleAry = halfSpinDatasetList[i]['angle_b0_Bloop'].values
-        for ch in range(16):
-            if ch < 10:
-                EangleMatrix[i, ch] = getAngleAtPeakPwr(EangleAry, EpwrAry[:, ch])
-                BangleMatrix[i, ch] = getAngleAtPeakPwr(sByangleAry, BpwrAry[:, ch])
-            else:
-                EangleMatrix[i, ch] = getAngleAtPeakPwr(BloopangleAry, EpwrAry[:, ch])
-                BangleMatrix[i, ch] = getAngleAtPeakPwr(BloopangleAry, BpwrAry[:, ch])
-    angleAtPeakPwrDict['Epoch'] = epochAry
     for ch in range(16):
-        # 角度が負の場合は180度足して正にする
-        EangleMatrix[:, ch][EangleMatrix[:, ch] < 0] += 180
-        BangleMatrix[:, ch][BangleMatrix[:, ch] < 0] += 180
-        # dictionaryに追加
-        angleAtPeakPwrDict['angleAtPeakEpwrCh{}'.format(ch)] = EangleMatrix[:, ch]
-        angleAtPeakPwrDict['angleAtPeakBpwrCh{}'.format(ch)] = BangleMatrix[:, ch]
+        angleAtPeakEpwr = []
+        timeAtPeakEpwr = []
+        angleAtPeakBpwr = []
+        timeAtPeakBpwr = []
 
-    # 角度のエラーを計算
-    EangleErrorAry = np.ones((len(halfSpinDatasetList)))
-    BangleErrorAry = np.ones((len(halfSpinDatasetList)))
-    BloopangleErrorAry = np.ones((len(halfSpinDatasetList)))
-    # 最初のhalfspin中、角度が何度刻みで変化するかの平均値を計算する
-    firstHalfSpinDs = halfSpinDatasetList[0]
-    EangleAry = firstHalfSpinDs['angle_b0_Ey'].values
-    BangleAry = firstHalfSpinDs['angle_b0_sBy'].values
-    BloopangleAry = firstHalfSpinDs['angle_b0_Bloop'].values
-    # 角度刻みの計算
-    EangleDiff = np.nanmean(np.abs(EangleAry[1:] - EangleAry[:-1]))
-    BangleDiff = np.nanmean(np.abs(BangleAry[1:] - BangleAry[:-1]))
-    BloopangleDiff = np.nanmean(np.abs(BloopangleAry[1:] - BloopangleAry[:-1]))
-    # dictionaryに追加
-    angleAtPeakPwrDict['EangleError'] = EangleErrorAry * EangleDiff
-    angleAtPeakPwrDict['BangleError'] = BangleErrorAry * BangleDiff
-    angleAtPeakPwrDict['BloopangleError'] = BloopangleErrorAry * BloopangleDiff
+        for i in range(len(halfSpinDatasetList)):
+            # Emax
+            timeAry = halfSpinDatasetList[i]['Epoch'].values
+            angleAry = halfSpinDatasetList[i]['angle_b0_Ey'].values
+            pwrAry = halfSpinDatasetList[i]['akb_mca_Emax_pwr'].values[:, ch]
+            angleAtPeakEpwrList, timeAtPeakEpwrList = getAngleAtPeakPwr(timeAry, angleAry, pwrAry)
+            angleAtPeakEpwr += angleAtPeakEpwrList
+            timeAtPeakEpwr += timeAtPeakEpwrList
+            # Bmax
+            timeAry = halfSpinDatasetList[i]['Epoch'].values
+            if ch < 10:
+                angleAry = halfSpinDatasetList[i]['angle_b0_sBy'].values
+            else:
+                angleAry = halfSpinDatasetList[i]['angle_b0_Bloop'].values
+            pwrAry = halfSpinDatasetList[i]['akb_mca_Bmax_pwr'].values[:, ch]
+            angleAtPeakBpwrList, timeAtPeakBpwrList = getAngleAtPeakPwr(timeAry, angleAry, pwrAry)
+            angleAtPeakBpwr += angleAtPeakBpwrList
+            timeAtPeakBpwr += timeAtPeakBpwrList
+
+        angleAtPeakPwrDict['timeAtPeakEpwrCh{}'.format(ch)] = timeAtPeakEpwr
+        angleAtPeakPwrDict['angleAtPeakEpwrCh{}'.format(ch)] = angleAtPeakEpwr
+        angleAtPeakPwrDict['timeAtPeakBpwrCh{}'.format(ch)] = timeAtPeakBpwr
+        angleAtPeakPwrDict['angleAtPeakBpwrCh{}'.format(ch)] = angleAtPeakBpwr
 
     return angleAtPeakPwrDict
 
@@ -139,6 +136,15 @@ def saveAngleAtPeakPwr(angleAtPeakPwrDict):
         # dictionary の key を header として書き出す
         writer.writerow(angleAtPeakPwrDict.keys())
         # dictionary の value を書き出す
+        # dictionary の value の長さを揃えるために、最大長の配列に合わせて書き出す
+        maxLen = 0
+        for key in angleAtPeakPwrDict.keys():
+            if len(angleAtPeakPwrDict[key]) > maxLen:
+                maxLen = len(angleAtPeakPwrDict[key])
+        for key in angleAtPeakPwrDict.keys():
+            if len(angleAtPeakPwrDict[key]) < maxLen:
+                angleAtPeakPwrDict[key] += [np.nan] * (maxLen - len(angleAtPeakPwrDict[key]))
+
         writer.writerows(zip(*angleAtPeakPwrDict.values()))
 
 
@@ -299,3 +305,19 @@ def saveWNAEstimationByChAll(wnaDictByChAll):
         writer.writerow(wnaDictByChAll.keys())
         # dictionary の value を書き出す
         writer.writerows(zip(*wnaDictByChAll.values()))
+
+
+
+# 以下、実行部分
+date = '1990-02-25'
+startTime = '12:22:00'
+endTime = '12:27:00'
+
+print('Split dataset into half spins...')
+halfSpinDatasetList = split_dataset_into_half_spins(date, startTime, endTime)
+print('Calculate angle at peak power...')
+angleAtPeakPwrDict = calcAngleAtPeakPwr(halfSpinDatasetList)
+print('Save angle at peak power...')
+saveAngleAtPeakPwr(angleAtPeakPwrDict)
+print("Plotting angle at peak power...")
+plotPeakAngle(date, startTime, endTime)
