@@ -7,7 +7,7 @@ import os
 from store_mgf_data import preprocess_mgf_angle
 
 
-def plotPeakAngle(date, startTime, endTime, fold):
+def plotPeakAngle(date, startTime, endTime, fold, color='k'):
     """
     Args:
         date (str): 日付, yyyy-mm-dd
@@ -32,8 +32,12 @@ def plotPeakAngle(date, startTime, endTime, fold):
     # store data
     for i in range(16):
         yrange = [-180, 180]
+        ymajor_ticks = [-180, -90, 0, 90, 180]
+        yminor_tick_interval = 10
         if fold:
             yrange = [0, 180]
+            ymajor_ticks = [0, 90, 180]
+            yminor_tick_interval = 10
             df['angleAtPeakEpwrCh'+str(i)] = preprocess_mgf_angle(df['angleAtPeakEpwrCh'+str(i)])
             df['angleAtPeakBpwrCh'+str(i)] = preprocess_mgf_angle(df['angleAtPeakBpwrCh'+str(i)])
 
@@ -41,14 +45,16 @@ def plotPeakAngle(date, startTime, endTime, fold):
                         data={'x': df['timeAtPeakEpwrCh'+str(i)],
                                 'y': df['angleAtPeakEpwrCh'+str(i)]})
         pytplot.options('AngleAtPeakEpwrCh'+str(i),
-                        opt_dict={'yrange': yrange, 'color': 'k', 'marker': '.', 'line_style': ' ',
-                         'ytitle': f'Angle (deg) @ {freqLabel[i]} Hz'})
+                        opt_dict={'yrange': yrange, 'ymajor_ticks': ymajor_ticks, 'yminor_tick_interval': yminor_tick_interval,
+                        'color': color, 'marker': '.', 'line_style': ' ',
+                        'ytitle': f'Angle (deg) @ {freqLabel[i]} Hz'})
         pytplot.store_data('AngleAtPeakBpwrCh'+str(i),
                         data={'x': df['timeAtPeakBpwrCh'+str(i)],
                                 'y': df['angleAtPeakBpwrCh'+str(i)]})
         pytplot.options('AngleAtPeakBpwrCh'+str(i),
-                        opt_dict={'yrange': yrange, 'color': 'k', 'marker': '.', 'line_style': ' ',
-                        'ytitle': 'Angle (deg) @ '+freqLabel[i]+' Hz'})
+                        opt_dict={'yrange': yrange, 'ymajor_ticks': ymajor_ticks, 'yminor_tick_interval': yminor_tick_interval,
+                        'color': color, 'marker': '.', 'line_style': ' ',
+                        'ytitle': f'Angle (deg) @ {freqLabel[i]} Hz'})
 
         pytplot.tplot_options('title', 'Angle at Peak Power (Threshold: '+str(df['thresholdPercent'].values[0])+'%)')
 
