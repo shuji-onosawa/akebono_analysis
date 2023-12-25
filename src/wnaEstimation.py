@@ -55,6 +55,43 @@ def split_dataset_into_half_spins(date, start_time, end_time):
     return half_spin_dataset_list
 
 
+def selectSpin(halfSpinDatasetList, thresholdPercent):
+    """
+    Args:
+        halfSpinDatasetList (list): halfSpinごとに分割されたxarray.datasetのリスト
+        thresholdPercent (float or int): 閾値(%)
+    Returns:
+        selectedDatasetList (list): 閾値を満たすxarray.datasetのリスト
+    """
+    # halfSpinDatasetListに含まれるxarray.datasetをすべて結合したxarray.datasetを作成
+    combinedDataset = halfSpinDatasetList[0]
+    for i in range(1, len(halfSpinDatasetList)):
+        combinedDataset = combinedDataset.combine_first(halfSpinDatasetList[i])
+    # 各チャンネルごとに、最大値を算出。最大値のthesholdPercent%を閾値とする
+    EmaxPwrAry = combinedDataset['akb_mca_Emax_pwr'].max(dim='Epoch').values
+    BmaxPwrAry = combinedDataset['akb_mca_Bmax_pwr'].max(dim='Epoch').values
+    thresholdE = EmaxPwrAry * thresholdPercent / 100
+    thresholdB = BmaxPwrAry * thresholdPercent / 100
+
+    selectedDatasetDict = {f"Ch{ch}EList": [] for ch in range(16)}
+    selectedDatasetDict.update({f"Ch{ch}BList": [] for ch in range(16)})
+
+    for i in range(len(halfSpinDatasetList)):
+        for ch in range(16):
+            # Emax
+            EmaxPwr = halfSpinDatasetList[i]['akb_mca_Emax_pwr'].values[:, ch]
+            if np.nanmax(EmaxPwr) >= thresholdE[ch]:
+                selectedDatasetDict[f"Ch{ch}EList"].append(halfSpinDatasetList[i])
+            # Bmax
+            BmaxPwr = halfSpinDatasetList[i]['akb_mca_Bmax_pwr'].values[:, ch]
+            if np.nanmax(BmaxPwr) >= thresholdB[ch]:
+                selectedDatasetDict[f"Ch{ch}BList"].append(halfSpinDatasetList[i])
+
+    # thresholdPercentの値を追加
+    selectedDatasetDict['thresholdPercent'] = thresholdPercent
+    return selectedDatasetDict
+
+
 def getAngleAtPeakPwr(timeAry, angleAry, pwrAry):
     """
     Args:
@@ -80,10 +117,10 @@ def getAngleAtPeakPwr(timeAry, angleAry, pwrAry):
     return angleAtPeakPwr, timeAtPeakPwr
 
 
-def calcAngleAtPeakPwr(halfSpinDatasetList):
+def calcAngleAtPeakPwr(selectedDatasetDict):
     """
     Args:
-        halfSpinDatasetList (list): halfSpinごとに分割されたDatasetのリスト
+        selectedDatasetDict (dict): 閾値を満たすxarray.datasetのリスト
 
     Returns:
         angleAtPeakPwrDict (dict): halfSpinごと最初の時刻、各チャンネルの最大値の角度の辞書
@@ -96,29 +133,42 @@ def calcAngleAtPeakPwr(halfSpinDatasetList):
         angleAtPeakBpwr = []
         timeAtPeakBpwr = []
 
-        for i in range(len(halfSpinDatasetList)):
+        for i in range(len(selectedDatasetDict[f"Ch{ch}EList"])):
             # Emax
-            timeAry = halfSpinDatasetList[i]['Epoch'].values
-            angleAry = halfSpinDatasetList[i]['angle_b0_Ey'].values
-            pwrAry = halfSpinDatasetList[i]['akb_mca_Emax_pwr'].values[:, ch]
+            timeAry = selectedDatasetDict[f"Ch{ch}EList"][i]['Epoch'].values
+            angleAry = selectedDatasetDict[f"Ch{ch}EList"][i]['angle_b0_Ey'].values
+            pwrAry = selectedDatasetDict[f"Ch{ch}EList"][i]['akb_mca_Emax_pwr'].values[:, ch]
             angleAtPeakEpwrList, timeAtPeakEpwrList = getAngleAtPeakPwr(timeAry, angleAry, pwrAry)
             angleAtPeakEpwr += angleAtPeakEpwrList
             timeAtPeakEpwr += timeAtPeakEpwrList
+        angleAtPeakPwrDict['timeAtPeakEpwrCh{}'.format(ch)] = timeAtPeakEpwr
+        angleAtPeakPwrDict['angleAtPeakEpwrCh{}'.format(ch)] = angleAtPeakEpwr
+
+        for j in range(len(selectedDatasetDict[f"Ch{ch}BList"])):
             # Bmax
-            timeAry = halfSpinDatasetList[i]['Epoch'].values
+            timeAry = selectedDatasetDict[f"Ch{ch}BList"][j]['Epoch'].values
             if ch < 10:
-                angleAry = halfSpinDatasetList[i]['angle_b0_sBy'].values
+                angleAry = selectedDatasetDict[f"Ch{ch}BList"][j]['angle_b0_sBy'].values
             else:
-                angleAry = halfSpinDatasetList[i]['angle_b0_Bloop'].values
-            pwrAry = halfSpinDatasetList[i]['akb_mca_Bmax_pwr'].values[:, ch]
+                angleAry = selectedDatasetDict[f"Ch{ch}BList"][j]['angle_b0_Bloop'].values
+            pwrAry = selectedDatasetDict[f"Ch{ch}BList"][j]['akb_mca_Bmax_pwr'].values[:, ch]
             angleAtPeakBpwrList, timeAtPeakBpwrList = getAngleAtPeakPwr(timeAry, angleAry, pwrAry)
             angleAtPeakBpwr += angleAtPeakBpwrList
             timeAtPeakBpwr += timeAtPeakBpwrList
-
-        angleAtPeakPwrDict['timeAtPeakEpwrCh{}'.format(ch)] = timeAtPeakEpwr
-        angleAtPeakPwrDict['angleAtPeakEpwrCh{}'.format(ch)] = angleAtPeakEpwr
         angleAtPeakPwrDict['timeAtPeakBpwrCh{}'.format(ch)] = timeAtPeakBpwr
         angleAtPeakPwrDict['angleAtPeakBpwrCh{}'.format(ch)] = angleAtPeakBpwr
+
+    # 時刻の配列の長さを揃えるために、最大長の配列に合わせて、nanを追加する
+    maxLen = 0
+    for key in angleAtPeakPwrDict.keys():
+        if len(angleAtPeakPwrDict[key]) > maxLen:
+            maxLen = len(angleAtPeakPwrDict[key])
+    for key in angleAtPeakPwrDict.keys():
+        if len(angleAtPeakPwrDict[key]) < maxLen:
+            angleAtPeakPwrDict[key] += [np.nan] * (maxLen - len(angleAtPeakPwrDict[key]))
+
+    # thresholdPercentの値を追加
+    angleAtPeakPwrDict['thresholdPercent'] = selectedDatasetDict['thresholdPercent'] * np.ones(maxLen)
 
     return angleAtPeakPwrDict
 
@@ -135,16 +185,6 @@ def saveAngleAtPeakPwr(angleAtPeakPwrDict):
         writer = csv.writer(f)
         # dictionary の key を header として書き出す
         writer.writerow(angleAtPeakPwrDict.keys())
-        # dictionary の value を書き出す
-        # dictionary の value の長さを揃えるために、最大長の配列に合わせて書き出す
-        maxLen = 0
-        for key in angleAtPeakPwrDict.keys():
-            if len(angleAtPeakPwrDict[key]) > maxLen:
-                maxLen = len(angleAtPeakPwrDict[key])
-        for key in angleAtPeakPwrDict.keys():
-            if len(angleAtPeakPwrDict[key]) < maxLen:
-                angleAtPeakPwrDict[key] += [np.nan] * (maxLen - len(angleAtPeakPwrDict[key]))
-
         writer.writerows(zip(*angleAtPeakPwrDict.values()))
 
 
@@ -309,14 +349,16 @@ def saveWNAEstimationByChAll(wnaDictByChAll):
 
 
 # 以下、実行部分
-date = '1990-02-25'
-startTime = '12:22:00'
-endTime = '12:27:00'
+date = '1990-02-11'
+startTime = '18:05:00'
+endTime = '18:10:00'
 
 print('Split dataset into half spins...')
 halfSpinDatasetList = split_dataset_into_half_spins(date, startTime, endTime)
+print('Select spin...')
+selectedSpinDict = selectSpin(halfSpinDatasetList, 30)
 print('Calculate angle at peak power...')
-angleAtPeakPwrDict = calcAngleAtPeakPwr(halfSpinDatasetList)
+angleAtPeakPwrDict = calcAngleAtPeakPwr(selectedSpinDict)
 print('Save angle at peak power...')
 saveAngleAtPeakPwr(angleAtPeakPwrDict)
 print("Plotting angle at peak power...")
