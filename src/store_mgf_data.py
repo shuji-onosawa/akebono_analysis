@@ -73,32 +73,38 @@ def get_mgf_with_angle_xry(date: str = '1990-2-25'):
     return new_mgf_xry
 
 
-def preprocess_mgf_angle(wave_mgf_ds: xr.Dataset):
-    '''
-    wave_mgf_dsに含まれる角度データを前処理する関数
-    '''
-    angle_b0_Ey = wave_mgf_ds['angle_b0_Ey']
-    angle_b0_sBy = wave_mgf_ds['angle_b0_sBy']
-    angle_b0_Bloop = wave_mgf_ds['angle_b0_Bloop']
-
-    angle_b0_Ey = angle_b0_Ey.where(angle_b0_Ey.values > 0, angle_b0_Ey.values+180)
-    angle_b0_sBy = angle_b0_sBy.where(angle_b0_sBy.values > 0, angle_b0_sBy.values+180)
-    angle_b0_Bloop = angle_b0_Bloop.where(angle_b0_Bloop.values> 0, angle_b0_Bloop.values+180)
-
-    return angle_b0_Ey, angle_b0_sBy, angle_b0_Bloop
+def preprocess_mgf_angle(angleAry: np.ndarray):
+    """
+    Args:
+        angleAry (np.ndarray): angle between B0 and antenna
+    Returns:
+        foldedAngleAry (np.ndarray): folded angle between B0 and antenna. 0 <= foldedAngleAry <= 180
+    """
+    foldedAngleAry = np.where(angleAry > 0, angleAry, angleAry+180)
+    return foldedAngleAry
 
 
 def store_angle_b0(wave_mgf_ds: xr.Dataset):
-    angleB0Ey, angleB0sBy, angleB0Bloop = preprocess_mgf_angle(wave_mgf_ds)
+    angleB0EyDs = wave_mgf_ds['angle_b0_Ey']
+    angleB0EyAry = angleB0EyDs.values
+    angleB0sByDs = wave_mgf_ds['angle_b0_sBy']
+    angleB0sByAry = angleB0sByDs.values
+    angleB0BloopDs = wave_mgf_ds['angle_b0_Bloop']
+    angleB0BloopAry = angleB0BloopDs.values
+
+    angleB0EyFolded = preprocess_mgf_angle(angleB0EyAry)
+    angleB0sByFolded = preprocess_mgf_angle(angleB0sByAry)
+    angleB0BloopFolded = preprocess_mgf_angle(angleB0BloopAry)
+
     pytplot.store_data('angle_b0_Ey',
-                       data={'x': angleB0Ey['Epoch'].data,
-                             'y': angleB0Ey.data})
+                       data={'x': angleB0EyDs['Epoch'].data,
+                             'y': angleB0EyFolded})
     pytplot.store_data('angle_b0_sBy',
-                       data={'x': angleB0sBy['Epoch'].data,
-                             'y': angleB0sBy.data})
+                       data={'x': angleB0sByDs['Epoch'].data,
+                             'y': angleB0sByFolded})
     pytplot.store_data('angle_b0_Bloop',
-                       data={'x': angleB0Bloop['Epoch'].data,
-                             'y': angleB0Bloop.data})
+                       data={'x': angleB0BloopDs['Epoch'].data,
+                             'y': angleB0BloopFolded})
 
     pytplot.options('angle_b0_Ey',
                     opt_dict={'yrange': [0, 180], 'color': 'k', 'marker': '.', 'line_style': None})
