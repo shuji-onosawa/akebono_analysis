@@ -578,12 +578,12 @@ def mca_h1cdf_dB_to_absolute(spec_type: str):
             if tvar_names[i] == prefix + 'Emax' or tvar_names[i] == prefix + 'Eave':
                 opt_dict = {'spec': 1, 'ylog': 1, 'zlog': 1,
                             'yrange': [1, 2e4], 'ysubtitle': 'Frequency [Hz]',
-                            'zrange': [1e-10, 1e2], 'ztitle': '$[(mV/m)^2/Hz]$'}
+                            'zrange': [1e-8, 1e2], 'ztitle': '$[(mV/m)^2/Hz]$'}
                 options(tvar_names[i] + '_pwr', opt_dict=opt_dict)
             if tvar_names[i] == prefix + 'Bmax' or tvar_names[i] == prefix + 'Bave':
                 opt_dict = {'spec': 1, 'ylog': 1, 'zlog': 1,
                             'yrange': [1, 2e4], 'ysubtitle': 'Frecuency [Hz]',
-                            'zrange': [1e-8, 1e6], 'ztitle': '$[pT^2/Hz]$'}
+                            'zrange': [1e-5, 1e9], 'ztitle': '$[pT^2/Hz]$'}
                 options(tvar_names[i] + '_pwr', opt_dict=opt_dict)
 
     if spec_type == 'amp':
