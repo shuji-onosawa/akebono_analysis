@@ -7,12 +7,13 @@ import os
 from store_mgf_data import preprocess_mgf_angle
 
 
-def plotPeakAngle(date, startTime, endTime):
+def plotPeakAngle(date, startTime, endTime, fold):
     """
     Args:
         date (str): 日付, yyyy-mm-dd
         startTime (str): 開始時刻, hh:mm:ss
         endTime (str): 終了時刻, hh:mm:ss
+        fold (bool): 角度を0~180度に折り返すか否か
     """
     # constant
     freqLabel = ['3.16', '5.62', '10', '17.8',
@@ -30,8 +31,9 @@ def plotPeakAngle(date, startTime, endTime):
 
     # store data
     for i in range(16):
-        df['angleAtPeakEpwrCh'+str(i)] = preprocess_mgf_angle(df['angleAtPeakEpwrCh'+str(i)])
-        df['angleAtPeakBpwrCh'+str(i)] = preprocess_mgf_angle(df['angleAtPeakBpwrCh'+str(i)])
+        if fold:
+            df['angleAtPeakEpwrCh'+str(i)] = preprocess_mgf_angle(df['angleAtPeakEpwrCh'+str(i)])
+            df['angleAtPeakBpwrCh'+str(i)] = preprocess_mgf_angle(df['angleAtPeakBpwrCh'+str(i)])
 
         pytplot.store_data('AngleAtPeakEpwrCh'+str(i),
                         data={'x': df['timeAtPeakEpwrCh'+str(i)],
@@ -58,7 +60,10 @@ def plotPeakAngle(date, startTime, endTime):
         + endTime[0:2] + endTime[3:5] + endTime[6:8] + '/'
     os.makedirs(saveDir, exist_ok=True)
     for i in range(16):
+        saveName = 'angleAtPeakPwr'+freqLabel[i]+'Hz_'+'threshold'+str(df['thresholdPercent'].values[0])
+        if fold:
+            saveName += 'folded'
         pytplot.tplot(['akb_mca_Emax_pwr', 'AngleAtPeakEpwrCh'+str(i), 'akb_mca_Bmax_pwr', 'AngleAtPeakBpwrCh'+str(i)],
                     xsize=12, ysize=10,
-                    save_jpeg=saveDir+'angleAtPeakPwr'+freqLabel[i]+'Hz_'+'threshold'+str(df['thresholdPercent'].values[0])+'folded',
+                    save_jpeg=saveDir+saveName,
                     display=False)
