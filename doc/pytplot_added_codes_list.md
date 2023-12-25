@@ -69,6 +69,18 @@ def get_var_label_ticks(var_xr, times):
     return out_ticks
 ```
 
+* y軸のメジャーティックの値とマイナーティックの間隔を設定できるようにする
+yrangeの設定の下に以下を追加
+```python
+        ymajor_ticks = yaxis_options.get('ymajor_ticks')
+        if ymajor_ticks is not None:
+            this_axis.set_yticks(ymajor_ticks)
+
+        yminor_tick_interval = yaxis_options.get('yminor_tick_interval')
+        if yminor_tick_interval is not None:
+            this_axis.yaxis.set_minor_locator(plt.MultipleLocator(yminor_tick_interval))
+```
+
 ## options.py
 ```python
     if(value == 6 or value == 'none'):
@@ -88,4 +100,13 @@ if option == 'marker':
 
 if option == 'char_size':
 pytplot.data_quants[i].attrs['plot_options']['extras']['char_size'] = value
+```
+
+yrangeのオプションの下に以下の設定を追加
+```python
+            if option == 'ymajor_ticks':  # y軸のメジャーティックの値
+                pytplot.data_quants[i].attrs['plot_options']['yaxis_opt']['y_major_tick'] = value
+
+            if option == 'yminor_tick_interval':  # y軸のマイナーティックの間隔
+                pytplot.data_quants[i].attrs['plot_options']['yaxis_opt']['y_minor_tick_interval'] = value
 ```
