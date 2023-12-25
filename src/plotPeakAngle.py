@@ -4,6 +4,7 @@ import pandas as pd
 import pytplot
 from store_high_time_res_spectrum_data import store_mca_high_time_res_data
 import os
+from store_mgf_data import preprocess_mgf_angle
 
 
 def plotPeakAngle(date, startTime, endTime):
@@ -29,18 +30,23 @@ def plotPeakAngle(date, startTime, endTime):
 
     # store data
     for i in range(16):
+        df['angleAtPeakEpwrCh'+str(i)] = preprocess_mgf_angle(df['angleAtPeakEpwrCh'+str(i)])
+        df['angleAtPeakBpwrCh'+str(i)] = preprocess_mgf_angle(df['angleAtPeakBpwrCh'+str(i)])
+
         pytplot.store_data('AngleAtPeakEpwrCh'+str(i),
                         data={'x': df['timeAtPeakEpwrCh'+str(i)],
                                 'y': df['angleAtPeakEpwrCh'+str(i)]})
         pytplot.options('AngleAtPeakEpwrCh'+str(i),
-                        opt_dict={'yrange': [-180, 180], 'color': 'k', 'marker': '.', 'line_style': ' ',
-                        'ytitle': 'Angle (deg) @ '+freqLabel[i]+' Hz'})
+                        opt_dict={'yrange': [0, 180], 'color': 'k', 'marker': '.', 'line_style': ' ',
+                         'ytitle': f'Angle (deg) @ {freqLabel[i]} Hz'})
         pytplot.store_data('AngleAtPeakBpwrCh'+str(i),
                         data={'x': df['timeAtPeakBpwrCh'+str(i)],
                                 'y': df['angleAtPeakBpwrCh'+str(i)]})
         pytplot.options('AngleAtPeakBpwrCh'+str(i),
-                        opt_dict={'yrange': [-180, 180], 'color': 'k', 'marker': '.', 'line_style': ' ',
+                        opt_dict={'yrange': [0, 180], 'color': 'k', 'marker': '.', 'line_style': ' ',
                         'ytitle': 'Angle (deg) @ '+freqLabel[i]+' Hz'})
+
+        pytplot.tplot_options('title', 'Angle at Peak Power (Threshold: '+str(df['thresholdPercent'].values[0])+'%)')
 
     store_mca_high_time_res_data(date=date, datatype='pwr', del_invalid_data=['off', 'bit rate m', 'sms', 'bdr', 'noisy'])
 
@@ -53,4 +59,6 @@ def plotPeakAngle(date, startTime, endTime):
     os.makedirs(saveDir, exist_ok=True)
     for i in range(16):
         pytplot.tplot(['akb_mca_Emax_pwr', 'AngleAtPeakEpwrCh'+str(i), 'akb_mca_Bmax_pwr', 'AngleAtPeakBpwrCh'+str(i)],
-                    xsize=10, ysize=10, save_jpeg=saveDir+'angleAtPeakPwr'+freqLabel[i]+'Hz', display=False)
+                    xsize=12, ysize=10,
+                    save_jpeg=saveDir+'angleAtPeakPwr'+freqLabel[i]+'Hz_'+'threshold'+str(df['thresholdPercent'].values[0])+'folded',
+                    display=False)
