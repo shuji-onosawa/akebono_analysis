@@ -349,9 +349,21 @@ def saveWNAEstimationByChAll(wnaDictByChAll):
 
 
 # 以下、実行部分
-date = '1990-02-11'
-startTime = '18:05:00'
-endTime = '18:10:00'
+date = '1990-03-02'
+startTime = '14:53:00'
+endTime = '14:58:00'
+
+print('Split dataset into half spins...')
+halfSpinDatasetList = split_dataset_into_half_spins(date, startTime, endTime)
+print('Select spin...')
+selectedSpinDict = selectSpin(halfSpinDatasetList, 0)
+print('Calculate angle at peak power...')
+angleAtPeakPwrDict = calcAngleAtPeakPwr(selectedSpinDict)
+print('Save angle at peak power...')
+saveAngleAtPeakPwr(angleAtPeakPwrDict)
+print("Plotting angle at peak power...")
+plotPeakAngle(date, startTime, endTime, fold=True)
+plotPeakAngle(date, startTime, endTime, fold=False)
 
 print('Split dataset into half spins...')
 halfSpinDatasetList = split_dataset_into_half_spins(date, startTime, endTime)
@@ -362,4 +374,5 @@ angleAtPeakPwrDict = calcAngleAtPeakPwr(selectedSpinDict)
 print('Save angle at peak power...')
 saveAngleAtPeakPwr(angleAtPeakPwrDict)
 print("Plotting angle at peak power...")
-plotPeakAngle(date, startTime, endTime)
+plotPeakAngle(date, startTime, endTime, fold=True)
+plotPeakAngle(date, startTime, endTime, fold=False)
