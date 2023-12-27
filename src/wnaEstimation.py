@@ -7,7 +7,7 @@ import numpy as np
 from utilities import find_zero_cross_idx
 import csv
 import os
-from plotPeakAngle import plotPeakAngle
+from plotPeakAngle import plotPeakAngle, combineImages
 
 def split_dataset_into_half_spins(date, start_time, end_time):
     # Convert input times to datetime format
@@ -347,11 +347,11 @@ def saveWNAEstimationByChAll(wnaDictByChAll):
         writer.writerows(zip(*wnaDictByChAll.values()))
 
 
-
 # 以下、実行部分
 date = '1990-02-11'
 startTime = '18:05:00'
 endTime = '18:10:00'
+thresholdPercent = 30
 
 print('Split dataset into half spins...')
 halfSpinDatasetList = split_dataset_into_half_spins(date, startTime, endTime)
@@ -368,7 +368,7 @@ plotPeakAngle(date, startTime, endTime, fold=False)
 print('Split dataset into half spins...')
 halfSpinDatasetList = split_dataset_into_half_spins(date, startTime, endTime)
 print('Select spin...')
-selectedSpinDict = selectSpin(halfSpinDatasetList, 30)
+selectedSpinDict = selectSpin(halfSpinDatasetList, thresholdPercent)
 print('Calculate angle at peak power...')
 angleAtPeakPwrDict = calcAngleAtPeakPwr(selectedSpinDict)
 print('Save angle at peak power...')
@@ -376,3 +376,15 @@ saveAngleAtPeakPwr(angleAtPeakPwrDict)
 print("Plotting angle at peak power...")
 plotPeakAngle(date, startTime, endTime, fold=True, color='r')
 plotPeakAngle(date, startTime, endTime, fold=False, color='r')
+
+freqLabel = ['3.16', '5.62', '10', '17.8',
+             '31.6', '56.2', '100', '178',
+             '316', '562', '1000', '1780',
+             '3160', '5620', '10000', '17800']
+saveFolder = '../plots/peakAngles/'+ date + '_' \
+        + startTime[0:2] + startTime[3:5] + startTime[6:8] + '-' \
+        + endTime[0:2] + endTime[3:5] + endTime[6:8] + '/'
+for freq in freqLabel:
+    combineImages(saveFolder+'angleAtPeakPwr'+freq+'Hz_threshold0.0folded.jpeg',
+                  saveFolder+'angleAtPeakPwr'+freq+'Hz_threshold'+str(float(thresholdPercent))+'folded.jpeg',
+                  saveFolder+'angleAtPeakPwr'+freq+'Hz_threshold'+str(thresholdPercent)+'_combined.png')
