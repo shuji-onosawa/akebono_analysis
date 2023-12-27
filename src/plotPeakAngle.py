@@ -5,6 +5,7 @@ import pytplot
 from store_high_time_res_spectrum_data import store_mca_high_time_res_data
 import os
 from store_mgf_data import preprocess_mgf_angle
+from PIL import Image
 
 
 def plotPeakAngle(date, startTime, endTime, fold, color='k'):
@@ -37,7 +38,6 @@ def plotPeakAngle(date, startTime, endTime, fold, color='k'):
         if fold:
             yrange = [0, 180]
             ymajor_ticks = [0, 90, 180]
-            yminor_tick_interval = 10
             df['angleAtPeakEpwrCh'+str(i)] = preprocess_mgf_angle(df['angleAtPeakEpwrCh'+str(i)])
             df['angleAtPeakBpwrCh'+str(i)] = preprocess_mgf_angle(df['angleAtPeakBpwrCh'+str(i)])
 
@@ -45,20 +45,22 @@ def plotPeakAngle(date, startTime, endTime, fold, color='k'):
                         data={'x': df['timeAtPeakEpwrCh'+str(i)],
                                 'y': df['angleAtPeakEpwrCh'+str(i)]})
         pytplot.options('AngleAtPeakEpwrCh'+str(i),
-                        opt_dict={'yrange': yrange, 'ymajor_ticks': ymajor_ticks, 'yminor_tick_interval': yminor_tick_interval,
+                        opt_dict={'yrange': yrange, 'y_major_ticks': ymajor_ticks, 'y_minor_tick_interval': yminor_tick_interval,
                         'color': color, 'marker': '.', 'line_style': ' ',
                         'ytitle': f'Angle (deg) @ {freqLabel[i]} Hz'})
         pytplot.store_data('AngleAtPeakBpwrCh'+str(i),
                         data={'x': df['timeAtPeakBpwrCh'+str(i)],
                                 'y': df['angleAtPeakBpwrCh'+str(i)]})
         pytplot.options('AngleAtPeakBpwrCh'+str(i),
-                        opt_dict={'yrange': yrange, 'ymajor_ticks': ymajor_ticks, 'yminor_tick_interval': yminor_tick_interval,
+                        opt_dict={'yrange': yrange, 'y_major_ticks': ymajor_ticks, 'y_minor_tick_interval': yminor_tick_interval,
                         'color': color, 'marker': '.', 'line_style': ' ',
                         'ytitle': f'Angle (deg) @ {freqLabel[i]} Hz'})
 
         pytplot.tplot_options('title', 'Angle at Peak Power (Threshold: '+str(df['thresholdPercent'].values[0])+'%)')
 
     store_mca_high_time_res_data(date=date, datatype='pwr', del_invalid_data=['off', 'bit rate m', 'sms', 'bdr', 'noisy'])
+    pytplot.options('akb_mca_Emax_pwr', 'y_major_ticks', [1e0, 1e1, 1e2, 1e3, 1e4])
+    pytplot.options('akb_mca_Bmax_pwr', 'y_major_ticks', [1e0, 1e1, 1e2, 1e3, 1e4])
 
     # Plot the graph
     pytplot.tlimit([date+' '+startTime, date+' '+endTime])
@@ -75,3 +77,31 @@ def plotPeakAngle(date, startTime, endTime, fold, color='k'):
                     xsize=12, ysize=10,
                     save_jpeg=saveDir+saveName,
                     display=False)
+
+
+def combineImages(imagePath1, imagePath2, outputPath, alpha=0.3):
+    """
+    2つの画像を読み込み、一方の画像の透明度を設定した後、他方の画像に重ねて保存する。
+
+    :param imagePath1: 最初の画像のパス
+    :param imagePath2: 二番目の画像のパス
+    :param outputPath: 出力画像の保存パス
+    :param alpha: 最初の画像の透明度 (0.0 - 1.0の範囲)
+    """
+    # 画像を読み込む
+    image1 = Image.open(imagePath1).convert("RGBA")
+    image2 = Image.open(imagePath2).convert("RGBA")
+
+    # 画像のサイズを確認
+    if image1.size != image2.size:
+        raise ValueError("Images must be the same size")
+
+    # 透明度を設定
+    alphaValue = int(alpha * 255)
+    image1.putalpha(alphaValue)
+
+    # 画像を重ねる
+    combinedImage = Image.alpha_composite(image2, image1)
+
+    # 画像を保存
+    combinedImage.save(outputPath, "PNG")
