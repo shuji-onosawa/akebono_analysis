@@ -43,7 +43,7 @@ def get_mgf_with_angle_xry(date: str = '1990-2-25'):
     # dateを'yyyymmdd'に変換する
     date = datetime.strptime(date, '%Y-%m-%d').strftime('%Y%m%d')
     # cdfファイルを読み込む
-    cdf_name = '../akebono_data/mgf/ak_h0_mgf_'+date+'_v01.cdf'
+    cdf_name = '../akebono_data/mgf/'+date[:4]+'/ak_h0_mgf_'+date+'_v01.cdf'
     mgf_xary = cdflib.cdf_to_xarray(cdf_name)
 
     b0_spin_da = mgf_xary['B0_spin']
