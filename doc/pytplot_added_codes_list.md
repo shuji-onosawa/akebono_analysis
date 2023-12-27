@@ -77,10 +77,21 @@ yrangeの設定の下に以下を追加
             this_axis.set_yticks(ymajor_ticks)
 
         yminor_tick_interval = yaxis_options.get('yminor_tick_interval')
-        if yminor_tick_interval is not None:
+        if yminor_tick_interval is not None and ylog != 'log':
             this_axis.yaxis.set_minor_locator(plt.MultipleLocator(yminor_tick_interval))
 ```
 
+* y軸のスケールがlogの場合、minor tickをmajor tickの2~9倍にする
+最初に必要なライブラリをimport
+```python
+from matplotlib.ticker import LogLocator
+```
+ylogの設定の下に以下を追加
+```python
+        if ylog == 'log':
+            this_axis.set_yscale('log')
+            this_axis.yaxis.set_minor_locator(LogLocator(subs=np.arange(2, 10)))
+```
 ## options.py
 ```python
     if(value == 6 or value == 'none'):
