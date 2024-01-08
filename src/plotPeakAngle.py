@@ -4,8 +4,9 @@ import pandas as pd
 import pytplot
 from store_high_time_res_spectrum_data import store_mca_high_time_res_data
 import os
-from store_mgf_data import preprocess_mgf_angle
+from store_mgf_data import preprocess_mgf_angle, get_mgf_with_angle_xry
 from PIL import Image
+import matplotlib.pyplot as plt
 
 
 def plotPeakAngle(date, startTime, endTime, fold, color='k'):
@@ -15,6 +16,7 @@ def plotPeakAngle(date, startTime, endTime, fold, color='k'):
         startTime (str): 開始時刻, hh:mm:ss
         endTime (str): 終了時刻, hh:mm:ss
         fold (bool): 角度を0~180度に折り返すか否か
+        color (str): マーカーの色
     """
     # constant
     freqLabel = ['3.16', '5.62', '10', '17.8',
@@ -77,6 +79,67 @@ def plotPeakAngle(date, startTime, endTime, fold, color='k'):
                     xsize=12, ysize=10,
                     save_jpeg=saveDir+saveName,
                     display=False)
+
+
+def plotAngleHist(date, startTime, endTime):
+    """
+    Args:
+        date (str): 日付, yyyy-mm-dd
+        startTime (str): 開始時刻, hh:mm:ss
+        endTime (str): 終了時刻, hh:mm:ss
+        fold (bool): 角度を0~180度に折り返すか否か
+    """
+    # constant
+    freqLabel = ['3.16', '5.62', '10', '17.8',
+                '31.6', '56.2', '100', '178',
+                '316', '562', '1000', '1780',
+                '3160', '5620', '10000', '17800']
+
+    # Read the CSV file
+    df = pd.read_csv('../execute/wnaEstimation/peakAngleObs.csv')
+
+    # Load mgf data
+    mgf_ds = get_mgf_with_angle_xry(date=date)
+    mgf_ds_sel = mgf_ds.sel(Epoch=slice(date+' '+startTime, date+' '+endTime))
+
+    # plot histogram for each frequency
+    for ch in range(len(freqLabel)):
+        EpeakAngle = df['angleAtPeakEpwrCh'+str(ch)]
+        BpeakAngle = df['angleAtPeakBpwrCh'+str(ch)]
+        EpeakAngleFolded = preprocess_mgf_angle(EpeakAngle)
+        BpeakAngleFolded = preprocess_mgf_angle(BpeakAngle)
+
+        angleB0E = mgf_ds_sel['angle_b0_Ey']
+        if ch < 10:
+            angleB0B = mgf_ds_sel['angle_b0_sBy']
+        else:
+            angleB0B = mgf_ds_sel['angle_b0_Bloop']
+        angleB0EFolded = preprocess_mgf_angle(angleB0E)
+        angleB0BFolded = preprocess_mgf_angle(angleB0B)
+
+        # plot histogram
+        fig, ax = plt.subplots(1, 2, figsize=(8, 5))
+        ax[0].hist(angleB0EFolded, bins=18, range=(0, 180), color='k', label='all data')
+        ax[0].hist(EpeakAngleFolded, bins=18, range=(0, 180), color='b', label='peak angle')
+        ax[0].set_title('E angle distribution @ '+freqLabel[ch]+' Hz')
+        ax[0].set_xlabel('Angle (deg)')
+        ax[0].set_ylabel('Counts')
+        ax[0].legend()
+        ax[1].hist(angleB0BFolded, bins=18, range=(0, 180), color='k', label='all data')
+        ax[1].hist(BpeakAngleFolded, bins=18, range=(0, 180), color='r', label='peak angle')
+        ax[1].set_title('B angle distribution @ '+freqLabel[ch]+' Hz')
+        ax[1].set_xlabel('Angle (deg)')
+        ax[1].set_ylabel('Counts')
+        ax[1].legend()
+        plt.tight_layout()
+
+        saveDir = '../plots/peakAngles/'+ date + '_' \
+        + startTime[0:2] + startTime[3:5] + startTime[6:8] + '-' \
+        + endTime[0:2] + endTime[3:5] + endTime[6:8] + '/'
+        os.makedirs(saveDir, exist_ok=True)
+        saveName = 'hist_'+freqLabel[ch]+'Hz'
+        plt.savefig(saveDir+saveName+'.png')
+        plt.close()
 
 
 def combineImages(imagePath1, imagePath2, outputPath, alpha=0.3):
