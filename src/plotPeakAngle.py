@@ -121,13 +121,13 @@ def plotAngleHist(date, startTime, endTime):
         fig, ax = plt.subplots(1, 2, figsize=(8, 5))
         ax[0].hist(angleB0EFolded, bins=18, range=(0, 180), color='k', label='all data')
         ax[0].hist(EpeakAngleFolded, bins=18, range=(0, 180), color='b', label='peak angle')
-        ax[0].set_title('E angle distribution @ '+freqLabel[ch]+' Hz')
+        ax[0].set_title('E angle distribution @ '+freqLabel[ch]+' Hz\n'+'(Threshold: '+str(df['thresholdPercent'].values[0])+'%)')
         ax[0].set_xlabel('Angle (deg)')
         ax[0].set_ylabel('Counts')
         ax[0].legend()
         ax[1].hist(angleB0BFolded, bins=18, range=(0, 180), color='k', label='all data')
         ax[1].hist(BpeakAngleFolded, bins=18, range=(0, 180), color='r', label='peak angle')
-        ax[1].set_title('B angle distribution @ '+freqLabel[ch]+' Hz')
+        ax[1].set_title('B angle distribution @ '+freqLabel[ch]+' Hz\n'+'(Threshold: '+str(df['thresholdPercent'].values[0])+'%)')
         ax[1].set_xlabel('Angle (deg)')
         ax[1].set_ylabel('Counts')
         ax[1].legend()
@@ -137,7 +137,7 @@ def plotAngleHist(date, startTime, endTime):
         + startTime[0:2] + startTime[3:5] + startTime[6:8] + '-' \
         + endTime[0:2] + endTime[3:5] + endTime[6:8] + '/'
         os.makedirs(saveDir, exist_ok=True)
-        saveName = 'hist_'+freqLabel[ch]+'Hz'
+        saveName = 'hist_'+freqLabel[ch]+'Hz_'+'threshold'+str(df['thresholdPercent'].values[0])
         plt.savefig(saveDir+saveName+'.png')
         plt.close()
 
