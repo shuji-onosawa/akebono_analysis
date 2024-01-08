@@ -7,7 +7,7 @@ import numpy as np
 from utilities import find_zero_cross_idx
 import csv
 import os
-from plotPeakAngle import plotPeakAngle, combineImages
+from plotPeakAngle import plotPeakAngle, combineImages, plotAngleHist
 
 def split_dataset_into_half_spins(date, start_time, end_time):
     # Convert input times to datetime format
@@ -361,10 +361,13 @@ print('Calculate angle at peak power...')
 angleAtPeakPwrDict = calcAngleAtPeakPwr(selectedSpinDict)
 print('Save angle at peak power...')
 saveAngleAtPeakPwr(angleAtPeakPwrDict)
+print('Plot histogram...')
+plotAngleHist(date, startTime, endTime)
+'''
 print("Plotting angle at peak power...")
 plotPeakAngle(date, startTime, endTime, fold=True)
 plotPeakAngle(date, startTime, endTime, fold=False)
-
+'''
 print('Split dataset into half spins...')
 halfSpinDatasetList = split_dataset_into_half_spins(date, startTime, endTime)
 print('Select spin...')
@@ -373,6 +376,10 @@ print('Calculate angle at peak power...')
 angleAtPeakPwrDict = calcAngleAtPeakPwr(selectedSpinDict)
 print('Save angle at peak power...')
 saveAngleAtPeakPwr(angleAtPeakPwrDict)
+print('Plot histogram...')
+plotAngleHist(date, startTime, endTime)
+
+'''
 print("Plotting angle at peak power...")
 plotPeakAngle(date, startTime, endTime, fold=True, color='r')
 plotPeakAngle(date, startTime, endTime, fold=False, color='r')
@@ -388,3 +395,4 @@ for freq in freqLabel:
     combineImages(saveFolder+'angleAtPeakPwr'+freq+'Hz_threshold0.0folded.jpeg',
                   saveFolder+'angleAtPeakPwr'+freq+'Hz_threshold'+str(float(thresholdPercent))+'folded.jpeg',
                   saveFolder+'angleAtPeakPwr'+freq+'Hz_threshold'+str(thresholdPercent)+'_combined.png')
+                  '''
