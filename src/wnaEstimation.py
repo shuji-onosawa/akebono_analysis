@@ -80,6 +80,9 @@ def selectSpin(halfSpinDatasetList, thresholdPercent):
         for ch in range(16):
             # Emax
             EmaxPwr = halfSpinDatasetList[i]['akb_mca_Emax_pwr'].values[:, ch]
+            # EmaxPwrの長さが0の場合は、このhalfSpinDatasetList[i]はスキップする
+            if len(EmaxPwr) == 0:
+                continue
             if np.nanmax(EmaxPwr) >= thresholdE[ch]:
                 selectedDatasetDict[f"Ch{ch}EList"].append(halfSpinDatasetList[i])
             # Bmax
