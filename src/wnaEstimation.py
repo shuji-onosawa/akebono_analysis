@@ -173,12 +173,15 @@ def calcAngleAtPeakPwr(selectedDatasetDict):
     return angleAtPeakPwrDict
 
 
-def saveAngleAtPeakPwr(angleAtPeakPwrDict):
+def saveAngleAtPeakPwr(angleAtPeakPwrDict, date, startTime, endTime):
     """
     Args:
         angleAtPeakPwrDict (dict): halfSpinごと最初の時刻、各チャンネルの最大値の角度の辞書
+        date (str): 日付, yyyy-mm-dd
+        startTime (str): 開始時刻, hh:mm:ss
+        endTime (str): 終了時刻, hh:mm:ss
     """
-    saveDir = '../execute/wnaEstimation/'
+    saveDir = '../execute/wnaEstimation/'+date+'_'+startTime[0:2]+startTime[3:5]+startTime[6:8]+'-'+endTime[0:2]+endTime[3:5]+endTime[6:8]+'/'
     saveName = 'peakAngleObs.csv'
     os.makedirs(saveDir, exist_ok=True)
     with open(saveDir+saveName, 'w') as f:
@@ -351,8 +354,8 @@ def saveWNAEstimationByChAll(wnaDictByChAll):
 date = '1990-02-11'
 startTime = '18:05:00'
 endTime = '18:10:00'
-thresholdPercent = 30
-
+# thresholdPercent = 30
+'''
 print('Split dataset into half spins...')
 halfSpinDatasetList = split_dataset_into_half_spins(date, startTime, endTime)
 print('Select spin...')
@@ -360,14 +363,14 @@ selectedSpinDict = selectSpin(halfSpinDatasetList, 0)
 print('Calculate angle at peak power...')
 angleAtPeakPwrDict = calcAngleAtPeakPwr(selectedSpinDict)
 print('Save angle at peak power...')
-saveAngleAtPeakPwr(angleAtPeakPwrDict)
+saveAngleAtPeakPwr(angleAtPeakPwrDict, date, startTime, endTime)
+'''
 print('Plot histogram...')
 plotAngleHist(date, startTime, endTime)
 '''
 print("Plotting angle at peak power...")
 plotPeakAngle(date, startTime, endTime, fold=True)
 plotPeakAngle(date, startTime, endTime, fold=False)
-'''
 print('Split dataset into half spins...')
 halfSpinDatasetList = split_dataset_into_half_spins(date, startTime, endTime)
 print('Select spin...')
@@ -379,7 +382,7 @@ saveAngleAtPeakPwr(angleAtPeakPwrDict)
 print('Plot histogram...')
 plotAngleHist(date, startTime, endTime)
 
-'''
+
 print("Plotting angle at peak power...")
 plotPeakAngle(date, startTime, endTime, fold=True, color='r')
 plotPeakAngle(date, startTime, endTime, fold=False, color='r')
