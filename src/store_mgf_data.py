@@ -106,12 +106,17 @@ def store_angle_b0(wave_mgf_ds: xr.Dataset):
                        data={'x': angleB0BloopDs['Epoch'].data,
                              'y': angleB0BloopFolded})
 
+    yrange = [0, 180]
+    ymajor_ticks = [0, 90, 180]
+    yminor_tick_interval = 10
+    opt_dict = {'yrange': yrange, 'y_major_ticks': ymajor_ticks, 'y_minor_tick_interval': yminor_tick_interval,
+                'color': 'k', 'marker': '.', 'line_style': ' '}
     pytplot.options('angle_b0_Ey',
-                    opt_dict={'yrange': [0, 180], 'color': 'k', 'marker': '.', 'line_style': None})
+                    opt_dict=opt_dict)
     pytplot.options('angle_b0_sBy',
-                    opt_dict={'yrange': [0, 180], 'marker': '.', 'line_style': None})
+                    opt_dict=opt_dict)
     pytplot.options('angle_b0_Bloop',
-                    opt_dict={'yrange': [0, 180], 'marker': '.', 'line_style': None})
+                    opt_dict=opt_dict)
     pytplot.timebar(t=90,
                     varname=['angle_b0_Ey', 'angle_b0_sBy', 'angle_b0_Bloop'],
                     databar=True)
