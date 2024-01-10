@@ -7,6 +7,7 @@ import os
 from store_mgf_data import preprocess_mgf_angle, get_mgf_with_angle_xry
 from PIL import Image
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def plotPeakAngle(date, startTime, endTime, fold, color='k'):
@@ -25,7 +26,10 @@ def plotPeakAngle(date, startTime, endTime, fold, color='k'):
                 '3160', '5620', '10000', '17800']
 
     # Read the CSV file
-    df = pd.read_csv('../execute/wnaEstimation/peakAngleObs.csv')
+    csvSaveDir = '../execute/wnaEstimation/'+ date + '_' \
+        + startTime[0:2] + startTime[3:5] + startTime[6:8] + '-' \
+        + endTime[0:2] + endTime[3:5] + endTime[6:8] + '/'
+    df = pd.read_csv(csvSaveDir+'peakAngleObs.csv')
 
     # Convert 'timeAtPeak*pwrCh*' to datetime
     for i in range(16):
@@ -96,7 +100,10 @@ def plotAngleHist(date, startTime, endTime):
                 '3160', '5620', '10000', '17800']
 
     # Read the CSV file
-    df = pd.read_csv('../execute/wnaEstimation/peakAngleObs.csv')
+    csvSaveDir = '../execute/wnaEstimation/'+ date + '_' \
+        + startTime[0:2] + startTime[3:5] + startTime[6:8] + '-' \
+        + endTime[0:2] + endTime[3:5] + endTime[6:8] + '/'
+    df = pd.read_csv(csvSaveDir+'peakAngleObs.csv')
 
     # Load mgf data
     mgf_ds = get_mgf_with_angle_xry(date=date)
@@ -117,27 +124,57 @@ def plotAngleHist(date, startTime, endTime):
         angleB0EFolded = preprocess_mgf_angle(angleB0E)
         angleB0BFolded = preprocess_mgf_angle(angleB0B)
 
+        # count
+        countE, binE = np.histogram(angleB0EFolded, bins=18, range=(0, 180))
+        countEpeak, binEpeak = np.histogram(EpeakAngleFolded, bins=18, range=(0, 180))
+        countB, binB = np.histogram(angleB0BFolded, bins=18, range=(0, 180))
+        countBpeak, binBpeak = np.histogram(BpeakAngleFolded, bins=18, range=(0, 180))
+
+        # normalize
+        # 0で割るとRuntimeWarningが出るので、0の要素を1に置き換える
+        countE = np.where(countE > 0, countE, 1)
+        countB = np.where(countB > 0, countB, 1)
+        # 割合を計算
+        countEPeakPercent = countEpeak / countE * 100
+        countBPeakPercent = countBpeak / countB * 100
+
         # plot histogram
+        # all data and peak data
         fig, ax = plt.subplots(1, 2, figsize=(8, 5))
         ax[0].hist(angleB0EFolded, bins=18, range=(0, 180), color='k', label='all data')
         ax[0].hist(EpeakAngleFolded, bins=18, range=(0, 180), color='b', label='peak angle')
-        ax[0].set_title('E angle distribution @ '+freqLabel[ch]+' Hz\n'+'(Threshold: '+str(df['thresholdPercent'].values[0])+'%)')
+        ax[0].set_title('E angle distribution @ '+freqLabel[ch]+' Hz')
         ax[0].set_xlabel('Angle (deg)')
         ax[0].set_ylabel('Counts')
         ax[0].legend()
         ax[1].hist(angleB0BFolded, bins=18, range=(0, 180), color='k', label='all data')
         ax[1].hist(BpeakAngleFolded, bins=18, range=(0, 180), color='r', label='peak angle')
-        ax[1].set_title('B angle distribution @ '+freqLabel[ch]+' Hz\n'+'(Threshold: '+str(df['thresholdPercent'].values[0])+'%)')
+        ax[1].set_title('B angle distribution @ '+freqLabel[ch]+' Hz')
         ax[1].set_xlabel('Angle (deg)')
         ax[1].set_ylabel('Counts')
         ax[1].legend()
         plt.tight_layout()
-
         saveDir = '../plots/peakAngles/'+ date + '_' \
         + startTime[0:2] + startTime[3:5] + startTime[6:8] + '-' \
         + endTime[0:2] + endTime[3:5] + endTime[6:8] + '/'
         os.makedirs(saveDir, exist_ok=True)
-        saveName = 'hist_'+freqLabel[ch]+'Hz_'+'threshold'+str(df['thresholdPercent'].values[0])
+        saveName = 'count_hist_'+freqLabel[ch]+'Hz'
+        plt.savefig(saveDir+saveName+'.png')
+        plt.close()
+
+        # peak data percentage
+        fig, ax = plt.subplots(1, 2, figsize=(8, 5))
+        ax[0].hist(binE[:-1], bins=binE, weights=countEPeakPercent)
+        ax[0].set_title('E angle percentage distribution @ '+freqLabel[ch]+' Hz')
+        ax[0].set_xlabel('Angle (deg)')
+        ax[0].set_ylabel('Percentage (%)')
+
+        ax[1].hist(binB[:-1], bins=binB, weights=countBPeakPercent)
+        ax[1].set_title('B angle percentage distribution @ '+freqLabel[ch]+' Hz')
+        ax[1].set_xlabel('Angle (deg)')
+        ax[1].set_ylabel('Percentage (%)')
+        plt.tight_layout()
+        saveName = 'percent_hist_'+freqLabel[ch]+'Hz'
         plt.savefig(saveDir+saveName+'.png')
         plt.close()
 
