@@ -353,27 +353,28 @@ def saveWNAEstimationByChAll(wnaDictByChAll):
         writer.writerows(zip(*wnaDictByChAll.values()))
 
 
-# 以下、実行部分
-date = '1990-02-11'
-startTime = '18:05:00'
-endTime = '18:10:00'
-# thresholdPercent = 30
+
+def main(date, startTime, endTime):
+    print('Split dataset into half spins...')
+    halfSpinDatasetList = split_dataset_into_half_spins(date, startTime, endTime)
+    print('Select spin...')
+    selectedSpinDict = selectSpin(halfSpinDatasetList, 0)
+    print('Calculate angle at peak power...')
+    angleAtPeakPwrDict = calcAngleAtPeakPwr(selectedSpinDict)
+    print('Save angle at peak power...')
+    saveAngleAtPeakPwr(angleAtPeakPwrDict, date, startTime, endTime)
+
+    print('Plot histogram...')
+    plotAngleHist(date, startTime, endTime)
+
+dateList = ['1990-02-11', '1990-02-17', '1990-02-25', '1990-03-02', '1990-03-06']
+
 '''
-print('Split dataset into half spins...')
-halfSpinDatasetList = split_dataset_into_half_spins(date, startTime, endTime)
-print('Select spin...')
-selectedSpinDict = selectSpin(halfSpinDatasetList, 0)
-print('Calculate angle at peak power...')
-angleAtPeakPwrDict = calcAngleAtPeakPwr(selectedSpinDict)
-print('Save angle at peak power...')
-saveAngleAtPeakPwr(angleAtPeakPwrDict, date, startTime, endTime)
+    print("Plotting angle at peak power...")
+    plotPeakAngle(date, startTime, endTime, fold=True)
+    plotPeakAngle(date, startTime, endTime, fold=False)
 '''
-print('Plot histogram...')
-plotAngleHist(date, startTime, endTime)
 '''
-print("Plotting angle at peak power...")
-plotPeakAngle(date, startTime, endTime, fold=True)
-plotPeakAngle(date, startTime, endTime, fold=False)
 print('Split dataset into half spins...')
 halfSpinDatasetList = split_dataset_into_half_spins(date, startTime, endTime)
 print('Select spin...')
