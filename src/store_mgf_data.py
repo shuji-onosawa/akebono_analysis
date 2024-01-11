@@ -5,17 +5,14 @@ from datetime import datetime
 import xarray as xr
 from preprocess_mgf_epoch import interpolate_mgf_epoch, convert_epoch
 
-def calc_angle_b0_antenna(b0_dataarray,
-                          component: str,
+def calc_angle_b0_antenna(b0_array,
                           antenna_vector: np.ndarray):
     # document: ../doc/kvectorEstimation.md
     # antenna_vectorは大きさ1のベクトルとする
     antenna_vector = antenna_vector/np.linalg.norm(antenna_vector)
-    # b0xryのB0_spinのデータを配列として取り出す。
-    b0_spin = b0_dataarray.values
     # b0_spinの大きさを1にする
-    b0_spin_norm = np.linalg.norm(b0_spin, axis=1)
-    b0SpinNormalized = b0_spin/b0_spin_norm[:, np.newaxis]
+    b0_spin_norm = np.linalg.norm(b0_array, axis=1)
+    b0SpinNormalized = b0_array/b0_spin_norm[:, np.newaxis]
     # b0_spinとantenna_vectorの内積を計算する
     b0CdotAntenna = np.dot(b0SpinNormalized, antenna_vector)
     # angleB0Antenna を計算する
@@ -27,10 +24,9 @@ def calc_angle_b0_antenna(b0_dataarray,
     # b0CrossAntennaとスピン軸方向の単位ベクトル(0, 0, 1)の内積を計算する
     b0CrossAntennaCdotZ = np.dot(b0CrossAntenna, np.array([0, 0, 1]))
     # b0CrossAntennaCdotZが負ならangleB0Antennaはそのまま、正なら-angleB0Antennaとする
-    angleB0AntennaSigned = np.where(b0CrossAntennaCdotZ < 0, angleB0Antenna, -angleB0Antenna)
+    angleB0AntennaSigned = np.where(b0CrossAntennaCdotZ < 0, angleB0Antenna, -angleB0Antenna) # -pi~pi, rad
 
-    return xr.DataArray(np.rad2deg(angleB0AntennaSigned), dims='Epoch', name='angle_b0_'+component)
-
+    return angleB0AntennaSigned
 
 def get_mgf_with_angle_xry(date: str = '1990-2-25'):
     """
@@ -59,16 +55,20 @@ def get_mgf_with_angle_xry(date: str = '1990-2-25'):
     mean_b0_spin_da_replaced['Epoch'] = convert_epoch(epoch)
 
     # calculate angle between B0 and antennas
-    angle_b0_Ey = calc_angle_b0_antenna(mean_b0_spin_da_replaced, 'Ey',
+    b0Ary = mean_b0_spin_da_replaced.values
+    angleB0EyAry = calc_angle_b0_antenna(b0Ary,
                                         np.array([-np.sin(np.deg2rad(35)),
                                                   np.cos(np.deg2rad(35)),
                                                   0]))
-    angle_b0_sBy = calc_angle_b0_antenna(mean_b0_spin_da_replaced, 'sBy',
+    angleB0EyXry = xr.DataArray(np.rad2deg(angleB0EyAry), dims='Epoch', name='angle_b0_Ey')
+    angleB0sByAry = calc_angle_b0_antenna(b0Ary,
                                          np.array([0, -1.0, 0]))
-    angle_b0_Bloop = calc_angle_b0_antenna(mean_b0_spin_da_replaced, 'Bloop',
+    angleB0sByXry = xr.DataArray(np.rad2deg(angleB0sByAry), dims='Epoch', name='angle_b0_sBy')
+    angleB0BloopAry = calc_angle_b0_antenna(b0Ary,
                                            np.array([2**-0.5, -3**-0.5, 6**-0.5]))
+    angleB0BloopXry = xr.DataArray(np.rad2deg(angleB0BloopAry), dims='Epoch', name='angle_b0_Bloop')
     # make new dataset from angle_b0_Ey and angle_b0_sBy
-    new_mgf_xry = xr.merge([mean_b0_spin_da_replaced, angle_b0_Ey, angle_b0_sBy, angle_b0_Bloop])
+    new_mgf_xry = xr.merge([mean_b0_spin_da_replaced, angleB0EyXry, angleB0sByXry, angleB0BloopXry])
 
     return new_mgf_xry
 
