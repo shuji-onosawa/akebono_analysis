@@ -113,7 +113,7 @@ def calc_dispersion_relation(w, theta):
         return n_L, n_R, S, D, P
 
 
-def calc_amp_ratio(n, S, D, P, theta) -> tuple(np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+def calc_amp_ratio(n, S, D, P, theta) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     '''
     Args:
         n: squared refractive index, float or ndarray
