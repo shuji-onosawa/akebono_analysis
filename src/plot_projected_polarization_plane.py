@@ -59,13 +59,13 @@ def plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio
     if mode == 'l':
         if np.isnan(n_L) == True:
             print('No valid value for', f'freq={freq}, mode={mode}')
-            return False
+            return np.nan, np.nan
         # left hand circular polarization
         Ey_Ex, Ez_Ex, By_Bx, Bz_Bx, _ = calc_amp_ratio(n_L, S, D, P, wna)
     elif mode == 'r':
         if np.isnan(n_R) == True:
             print('No valid value for', f'freq={freq}, mode={mode}')
-            return False
+            return np.nan, np.nan
         # right hand circular polarization
         Ey_Ex, Ez_Ex, By_Bx, Bz_Bx, _ = calc_amp_ratio(n_R, S, D, P, wna)
 
@@ -226,7 +226,7 @@ def plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio
 
 
 wnaAry = np.array([0, 10, 20, 30, 40, 50, 60,
-                    70, 80, 89,91, 100, 110, 120,
+                    70, 80, 100, 110, 120,
                     130, 140, 150, 160, 170, 180])
 phiAry = np.arange(0, 360, 10)
 freqList = [3.16, 5.62, 10, 17.8,
@@ -235,8 +235,8 @@ freqList = [3.16, 5.62, 10, 17.8,
             3160]
 
 saveDir = '../execute/SimulatedObservation/'
-outputDir = 'event1'
-
+outputDir = 'event6'
+os.makedirs(saveDir+outputDir+'/', exist_ok=True)
 B0 = 8410 # nT
 dens = 60e6 # m^-3
 densRatio = np.array([0.46, 0.11, 0.43]) # H:He:O
@@ -251,12 +251,13 @@ with open(saveDir+outputDir+'/setting.txt', 'w') as f:
     f.write('phiAry: '+str(phiAry)+'\n')
     f.write('freqList: '+str(freqList)+'\n')
 
-for mode in ['l', 'r']:
+for mode in ['r', 'l']:
     for freq in freqList:
-        # wna_listとphi_listの最初の値を使って計算し、返り値がFalseの場合はこの周波数での計算を行わない
+        # wna_listとphi_listの最初の値で計算を行い、np.nanが返ってきたら計算を行わない
         wna = wnaAry[0]
         phi = phiAry[0]
-        if plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio, mode, outputDir) == False:
+        EmaxAngleTest, BmaxAngleTest = plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio, mode, outputDir)
+        if np.isnan(EmaxAngleTest) == True or np.isnan(BmaxAngleTest) == True:
             print('No valid value for', f'freq={freq}, mode={mode}')
             continue
         # 返り値がFalseでない場合は、計算を行う
@@ -271,35 +272,3 @@ for mode in ['l', 'r']:
                     EmaxAngle, BmaxAngle = plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio, mode, outputDir)
                     anglePairsList.append(str(EmaxAngle)+'v'+str(BmaxAngle))
                 writer.writerow([wna]+anglePairsList)
-'''
-for mode in ['l', 'r']:
-    for freq in freqList:
-        theta = 123.75
-        os.makedirs(saveDir, exist_ok=True)
-        saveName = saveDir+'pyEmax_Bmax_angle_freq-{}_mode-{}.csv'
-        with open(saveName.format(freq, mode), 'w') as f:
-            writer = csv.writer(f)
-            writer.writerow([""]+phiAry)
-            # wna_listとphi_listの最初の値を使って計算し、返り値がnanの場合はnanで埋めたcsvを作成する
-            # このとき、nanの値は文字列'nan'として保存する
-            wna = wnaAry[0]
-            phi = phiAry[0]
-            EmaxAngleTest, BmaxAngleTest = plot_projected_polarization_plane(theta, phi, wna, freq, mode)
-            if np.isnan(EmaxAngleTest) == True:
-                print('No valid value for', f'freq={freq}, mode={mode}')
-                for i in range(len(wnaAry)):
-                    anglePairsList = []
-                    for phi in phiAry:
-                        anglePairsList.append('nan'+'v'+'nan')
-                    writer.writerow([wna]+anglePairsList)
-            # 返り値がnanでない場合は、計算を行う
-            else:
-                for wna in wna_list:
-                    anglePairsList = []
-                    for phi in phi_list:
-                        wna = wna
-                        freq = freq
-                        EmaxAngle, BmaxAngle = plot_projected_polarization_plane(theta, phi, wna, freq, mode)
-                        anglePairsList.append(str(EmaxAngle)+'v'+str(BmaxAngle))
-                    writer.writerow([wna]+anglePairsList)
-'''
