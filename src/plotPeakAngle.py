@@ -111,8 +111,8 @@ def plotAngleHist(date, startTime, endTime):
 
     # plot histogram for each frequency
     for ch in range(len(freqLabel)):
-        EpeakAngle = df['angleAtPeakEpwrCh'+str(ch)]
-        BpeakAngle = df['angleAtPeakBpwrCh'+str(ch)]
+        EpeakAngle = df['angleAtPeakEpwrCh'+str(ch)].to_numpy()
+        BpeakAngle = df['angleAtPeakBpwrCh'+str(ch)].to_numpy()
         EpeakAngleFolded = preprocess_mgf_angle(EpeakAngle)
         BpeakAngleFolded = preprocess_mgf_angle(BpeakAngle)
 
@@ -121,14 +121,19 @@ def plotAngleHist(date, startTime, endTime):
             angleB0B = mgf_ds_sel['angle_b0_sBy']
         else:
             angleB0B = mgf_ds_sel['angle_b0_Bloop']
-        angleB0EFolded = preprocess_mgf_angle(angleB0E)
-        angleB0BFolded = preprocess_mgf_angle(angleB0B)
+        angleB0EAry = angleB0E.values
+        angleB0BAry = angleB0B.values
+        angleB0EFolded = preprocess_mgf_angle(angleB0EAry)
+        angleB0BFolded = preprocess_mgf_angle(angleB0BAry)
 
         # count
         countE, binE = np.histogram(angleB0EFolded, bins=18, range=(0, 180))
         countEpeak, binEpeak = np.histogram(EpeakAngleFolded, bins=18, range=(0, 180))
         countB, binB = np.histogram(angleB0BFolded, bins=18, range=(0, 180))
         countBpeak, binBpeak = np.histogram(BpeakAngleFolded, bins=18, range=(0, 180))
+        # error
+        countEPeakError = np.sqrt(countEpeak)
+        countBPeakError = np.sqrt(countBpeak)
 
         # normalize
         # 0で割るとRuntimeWarningが出るので、0の要素を1に置き換える
@@ -137,6 +142,9 @@ def plotAngleHist(date, startTime, endTime):
         # 割合を計算
         countEPeakPercent = countEpeak / countE * 100
         countBPeakPercent = countBpeak / countB * 100
+        # error
+        countEPeakPercentError = countEPeakError / countE * 100
+        countBPeakPercentError = countBPeakError / countB * 100
 
         # plot histogram
         # all data and peak data
@@ -165,11 +173,15 @@ def plotAngleHist(date, startTime, endTime):
         # peak data percentage
         fig, ax = plt.subplots(1, 2, figsize=(8, 5))
         ax[0].hist(binE[:-1], bins=binE, weights=countEPeakPercent)
+        ax[0].errorbar(binE[:-1]+5, countEPeakPercent, yerr=countEPeakPercentError,
+                       fmt='none', ecolor='k', capsize=2)
         ax[0].set_title('E angle percentage distribution @ '+freqLabel[ch]+' Hz')
         ax[0].set_xlabel('Angle (deg)')
         ax[0].set_ylabel('Percentage (%)')
 
         ax[1].hist(binB[:-1], bins=binB, weights=countBPeakPercent)
+        ax[1].errorbar(binB[:-1]+5, countBPeakPercent, yerr=countBPeakPercentError,
+                       fmt='none', ecolor='k', capsize=2)
         ax[1].set_title('B angle percentage distribution @ '+freqLabel[ch]+' Hz')
         ax[1].set_xlabel('Angle (deg)')
         ax[1].set_ylabel('Percentage (%)')

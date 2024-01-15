@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from calc_dispersion_in_cold_plasma import calc_dispersion_relation, calc_amp_ratio
 import os
 import csv
-
+import time
 
 def calc_angle_b0_antenna(spinPlaneNormalVec, antennaVec):
     """
@@ -23,7 +23,7 @@ def calc_angle_b0_antenna(spinPlaneNormalVec, antennaVec):
     angleB0AntennaSigned = np.where(b0CrossAntennaCdotZ < 0, angleB0Antenna, -angleB0Antenna) # -pi~pi, rad
     return angleB0AntennaSigned # rad
 
-def plot_projected_polarization_plane(theta, wna, phi, freq, mode):
+def plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio, mode, outputDir):
     """
     入力パラメータを用いてプラズマ波動の偏波面を計算し、衛星のスピン面でどのように観測されるかを模擬する。
     電場強度、磁場強度が最大になるときの各アンテナの角度EmaxAngle, BmaxAngleを返す。
@@ -32,9 +32,13 @@ def plot_projected_polarization_plane(theta, wna, phi, freq, mode):
         wna: wave normal angle [deg]
         phi: azimuth angle of k vector [deg]
         freq: wave frequency [Hz]
+        B0: background magnetic field strength [nT]
+        dens: plasma density [m^-3]
+        densRatio: ratio of each ion species
         mode: 'l' or 'r'
+        outputDir: output directory name, str
     Return:
-        EmaxAngleRounded, BmaxAngleRounded
+        None or (EmaxAngleRounded, BmaxAngleRounded)
     """
     print('calc for these parameters:')
     print('theta:', theta)
@@ -51,17 +55,17 @@ def plot_projected_polarization_plane(theta, wna, phi, freq, mode):
     angle_freq = 2*np.pi*freq
 
     k_vec = np.array([np.sin(wna*np.pi/180), 0, np.cos(wna*np.pi/180)])
-    n_L, n_R, S, D, P = calc_dispersion_relation(angle_freq, wna)
+    n_L, n_R, S, D, P = calc_dispersion_relation(angle_freq, wna, B0, dens, densRatio)
     if mode == 'l':
         if np.isnan(n_L) == True:
             print('No valid value for', f'freq={freq}, mode={mode}')
-            return False
+            return np.nan, np.nan
         # left hand circular polarization
         Ey_Ex, Ez_Ex, By_Bx, Bz_Bx, _ = calc_amp_ratio(n_L, S, D, P, wna)
     elif mode == 'r':
         if np.isnan(n_R) == True:
             print('No valid value for', f'freq={freq}, mode={mode}')
-            return False
+            return np.nan, np.nan
         # right hand circular polarization
         Ey_Ex, Ez_Ex, By_Bx, Bz_Bx, _ = calc_amp_ratio(n_R, S, D, P, wna)
 
@@ -167,7 +171,7 @@ def plot_projected_polarization_plane(theta, wna, phi, freq, mode):
     # y軸の下限は0
     ax2.set_ylim(bottom=0)
     ax2.set_xticks([0, 45, 90, 135, 180])
-    ax2.set_xlabel('angle')
+    ax2.set_xlabel('angle (deg)')
     ax2.set_ylabel('Normalized power \n Eobs^2/Ex^2')
     ax2.legend(loc='upper right')
 
@@ -178,7 +182,7 @@ def plot_projected_polarization_plane(theta, wna, phi, freq, mode):
     # y軸の下限は0
     ax3.set_ylim(bottom=0)
     ax3.set_xticks([0, 45, 90, 135, 180])
-    ax3.set_xlabel('angle')
+    ax3.set_xlabel('angle (deg)')
     ax3.set_ylabel('Normalized power \n Bobs^2/Bx^2')
     ax3.legend(loc='upper right')
 
@@ -188,7 +192,7 @@ def plot_projected_polarization_plane(theta, wna, phi, freq, mode):
     # y軸の下限は0
     ax4.set_ylim(bottom=0)
     ax4.set_xticks([-180, -135, -90, -45, 0, 45, 90, 135, 180])
-    ax4.set_xlabel('angle')
+    ax4.set_xlabel('angle (deg)')
     ax4.set_ylabel('Normalized power \n Eobs^2/Ex^2')
     ax4.legend(loc='upper right')
 
@@ -198,126 +202,81 @@ def plot_projected_polarization_plane(theta, wna, phi, freq, mode):
     # y軸の下限は0
     ax5.set_ylim(bottom=0)
     ax5.set_xticks([-180, -135, -90, -45, 0, 45, 90, 135, 180])
-    ax5.set_xlabel('angle')
+    ax5.set_xlabel('angle (deg)')
     ax5.set_ylabel('Normalized power \n Bobs^2/Bx^2')
     ax5.legend(loc='upper right')
 
     # save figure
     if mode == 'l':
-        savefig_dir = '../plots/projected_polarization_plane/left_hand_circular_test/theta'+str(theta)+'/freq'+str(freq)+'/wna'+str(wna)+'/'
+        savefig_dir = '../plots/projected_polarization_plane/'+outputDir+'/left_hand_circular_test/theta'+str(theta)+'/freq'+str(freq)+'/wna'+str(wna)+'/'
     elif mode == 'r':
-        savefig_dir = '../plots/projected_polarization_plane/right_hand_circular_test/theta'+str(theta)+'/freq'+str(freq)+'/wna'+str(wna)+'/'
+        savefig_dir = '../plots/projected_polarization_plane/'+outputDir+'/right_hand_circular_test/theta'+str(theta)+'/freq'+str(freq)+'/wna'+str(wna)+'/'
 
     os.makedirs(savefig_dir, exist_ok=True)
     plt.savefig(savefig_dir+'phi'+str(phi)+'.jpeg', dpi=300)
     plt.close()
 
-    return True
-    '''
-    # scatter plot projected polarization plane
-    ax = fig.add_subplot(222)
-    ax.scatter(np.dot(EvecProjVec, spin_plane_unit_vec1),
-               np.dot(EvecProjVec, spin_plane_unit_vec2),
-               color='r', s=1)
-    ax.scatter(np.dot(BvecProjVec, spin_plane_unit_vec1),
-               np.dot(BvecProjVec, spin_plane_unit_vec2),
-               color='b', s=1)
-    ax.set_xlim(-2.5, 2.5)
-    ax.set_ylim(-2.5, 2.5)
-    ax.set_xlabel('green')
-    ax.set_ylabel('yellow')
-    ax.set_aspect('equal')
-
-    # scatter plot angle dependence of power
-    ax = fig.add_subplot(223)
-    ax.scatter(np.rad2deg(angle_E_b0), EvecProjVecNorm/np.nanmax(EvecProjVecNorm),
-               color='r', label='E field', s=2.0)
-    ax.scatter(np.rad2deg(angle_B_b0), BvecProjVecNorm/np.nanmax(BvecProjVecNorm),
-               color='b', label='B field', s=2.0)
-    ax.set_xlim(0, 180)
-    ax.set_ylim(0, 1.1)
-
-    ax.set_xlabel('angle')
-    ax.set_ylabel('power')
-    ax.set_xticks([0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5, 180])
-    # legend position
-    ax.legend(loc='lower right')
-    if mode == 'l':
-        savefig_dir = '../plots/projected_polarization_plane/left_hand_circular/freq'+str(freq)+'/wna'+str(wna)+'theta'+str(theta)+'/'
-    elif mode == 'r':
-        savefig_dir = '../plots/projected_polarization_plane/right_hand_circular/freq'+str(freq)+'/wna'+str(wna)+'theta'+str(theta)+'/'
-
-    os.makedirs(savefig_dir, exist_ok=True)
-    plt.savefig(savefig_dir+'spin-phi'+str(phi)+'.jpeg', dpi=300)
-    plt.close()
-
     # find max power angle
-    Emax_angle = np.rad2deg(angle_E_b0[np.argmax(EvecProjVecNorm)])
-    Bmax_angle = np.rad2deg(angle_B_b0[np.argmax(BvecProjVecNorm)])
-
-    if Emax_angle < 0:
-        Emax_angle += 180
-    if Bmax_angle < 0:
-        Bmax_angle += 180
-    # 第2位を四捨五入した値を返す
-    EmaxAngleRounded = round(Emax_angle[0], 1)
-    BmaxAngleRounded = round(Bmax_angle[0], 1)
+    Emax_angle = angleB0E_folded[np.argmax(EpwrObs)]
+    Bmax_angle = angleB0B_folded[np.argmax(BpwrObs)]
+    # 第3位を四捨五入した値を返す
+    EmaxAngleRounded = round(Emax_angle, 0)
+    BmaxAngleRounded = round(Bmax_angle, 0)
     return EmaxAngleRounded, BmaxAngleRounded
-    '''
 
 
-wnaAry = np.arange(0, 200, 20)
-phiAry = np.arange(0, 360, 20)
+wnaAry = np.array([0, 10, 20, 30, 40, 50, 60,
+                    70, 80, 90, 100, 110, 120,
+                    130, 140, 150, 160, 170, 180])
+phiAry = np.arange(0, 360, 10)
 freqList = [3.16, 5.62, 10, 17.8,
             31.6, 56.2, 100, 178,
             316, 562, 1000, 1780,
-            3160, 5620, 10000, 17800]
+            3160]
 
 saveDir = '../execute/SimulatedObservation/'
+outputDir = 'event1'
+os.makedirs(saveDir+outputDir+'/', exist_ok=True)
+B0 = 8410 # nT
+dens = 60*1e6 # m^-3
+densRatio = np.array([0.46,0.11,0.43]) # H:He:O
+theta = 114 # deg
+# 設定をtxtに保存
+with open(saveDir+outputDir+'/setting.txt', 'w') as f:
+    f.write('B0: '+str(B0)+' nT\n')
+    f.write('dens: '+str(dens)+' m^-3\n')
+    f.write('densRatio: '+str(densRatio[0])+','+str(densRatio[1])+','+str(densRatio[2])+'\n')
+    f.write('theta: '+str(theta)+' deg\n')
+    f.write('wnaAry: '+str(wnaAry)+'\n')
+    f.write('phiAry: '+str(phiAry)+'\n')
+    f.write('freqList: '+str(freqList)+'\n')
 
-for mode in ['l', 'r']:
-    for freq in freqList:
-        theta = 120
-        # wna_listとphi_listの最初の値を使って計算し、返り値がFalseの場合はこの周波数での計算を行わない
+for freq in freqList:
+    for mode in ['r', 'l']:
+        # wna_listとphi_listの最初の値で計算を行い、np.nanが返ってきたら計算を行わない
         wna = wnaAry[0]
         phi = phiAry[0]
-        if plot_projected_polarization_plane(theta, wna, phi, freq, mode) == False:
+        EmaxAngleTest, BmaxAngleTest = plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio, mode, outputDir)
+        if np.isnan(EmaxAngleTest) == True or np.isnan(BmaxAngleTest) == True:
             print('No valid value for', f'freq={freq}, mode={mode}')
             continue
         # 返り値がFalseでない場合は、計算を行う
-        for wna in wnaAry:
-            for phi in phiAry:
-                plot_projected_polarization_plane(theta, wna, phi, freq, mode)
-
-'''
-for mode in ['l', 'r']:
-    for freq in freqList:
-        theta = 123.75
-        os.makedirs(saveDir, exist_ok=True)
-        saveName = saveDir+'pyEmax_Bmax_angle_freq-{}_mode-{}.csv'
-        with open(saveName.format(freq, mode), 'w') as f:
+        os.makedirs(saveDir+outputDir+'/', exist_ok=True)
+        csvSaveName = saveDir+outputDir+'/pyEmax_Bmax_angle_freq-{}_mode-{}.csv'
+        # csvファイルが存在する場合は、上書きせずに計算をスキップする
+        if os.path.exists(csvSaveName.format(freq, mode)) == True:
+            print('Already exists:', csvSaveName.format(freq, mode))
+            continue
+        with open(csvSaveName.format(freq, mode), 'a') as f:
             writer = csv.writer(f)
-            writer.writerow([""]+phiAry)
-            # wna_listとphi_listの最初の値を使って計算し、返り値がnanの場合はnanで埋めたcsvを作成する
-            # このとき、nanの値は文字列'nan'として保存する
-            wna = wnaAry[0]
-            phi = phiAry[0]
-            EmaxAngleTest, BmaxAngleTest = plot_projected_polarization_plane(theta, phi, wna, freq, mode)
-            if np.isnan(EmaxAngleTest) == True:
-                print('No valid value for', f'freq={freq}, mode={mode}')
-                for i in range(len(wnaAry)):
-                    anglePairsList = []
-                    for phi in phiAry:
-                        anglePairsList.append('nan'+'v'+'nan')
-                    writer.writerow([wna]+anglePairsList)
-            # 返り値がnanでない場合は、計算を行う
-            else:
-                for wna in wna_list:
-                    anglePairsList = []
-                    for phi in phi_list:
-                        wna = wna
-                        freq = freq
-                        EmaxAngle, BmaxAngle = plot_projected_polarization_plane(theta, phi, wna, freq, mode)
-                        anglePairsList.append(str(EmaxAngle)+'v'+str(BmaxAngle))
-                    writer.writerow([wna]+anglePairsList)
-'''
+            writer.writerow([""]+wnaAry.tolist())
+            for phi in phiAry:
+                # 現時点の時刻を取得
+                now = time.time()
+                anglePairsList = []
+                for wna in wnaAry:
+                    EmaxAngle, BmaxAngle = plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio, mode, outputDir)
+                    anglePairsList.append(str(EmaxAngle)+'v'+str(BmaxAngle))
+                writer.writerow([str(phi)]+anglePairsList)
+                # 1周の計算にかかった時間を表示
+                print('time:', time.time()-now, 's')

@@ -19,25 +19,57 @@ def get_crossover_freq_idx(array, value):
     return idx
 
 
-def calc_dispersion_relation(w, theta):
+def calc_dispersion_relation(w, theta, B0, dens, densRatio):
     """
     w: float or array of float, rad/s
     theta: int, wave normal angle, 0 - 90 [deg]
+    B0: float, background magnetic field, nT
+    dens: float, background plasma density, m^-3
+    densRatio: list of float, ratio of ion density to electron density, [H:He:O]
 
     return: n_L, n_R, S, D, P
     """
-    import plasma_params as pp
+    # constant
+    Q = 1.602176634e-19  # [C]
+    EPS = 8.8541878128e-12  # [F m*-1]
+    MYU = 1.25663706212e-6  # [N A**-2]
+    ME = 9.1093837015e-31  # [kg]
+    MH = 1.67262192369e-27  # [kg]
+    MHE = 6.646477e-27  # [kg]
+    MO = 2.6566962e-26  # [kg]
+    C = 2.99792458e8  # [m s**-1]
+    B0 = B0*1e-9  # [T]
 
+    # plasma parameter
+    NE = dens  # [m^-3]
+    ion_ratio = np.array(densRatio)  # H:He:O
+    nh = ion_ratio[0]*NE
+    nhe = ion_ratio[1]*NE
+    no = ion_ratio[2]*NE
+
+    # サイクロトロン周波数
+    omega_e = -Q*B0/ME # [rad/s]
+    omega_h = Q*B0/MH # [rad/s]
+    omega_he = Q*B0/MHE # [rad/s]
+    omega_o = Q*B0/MO # [rad/s]
+
+    # プラズマ周波数
+    pi_e = (NE*Q**2/(EPS*ME))**0.5 # [rad/s]
+    pi_h = (nh*Q**2/(EPS*MH))**0.5 # [rad/s]
+    pi_he = (nhe*Q**2/(EPS*MHE))**0.5 # [rad/s]
+    pi_o = (no*Q**2/(EPS*MO))**0.5 # [rad/s]
+
+    # 分散関係の計算
     Theta = np.deg2rad(theta)
 
-    Xe = (pp.pi_e['value']/w)**2
-    Xh = (pp.pi_h['value']/w)**2
-    Xhe = (pp.pi_he['value']/w)**2
-    Xo = (pp.pi_o['value']/w)**2
-    Ye = pp.omega_e['value']/w
-    Yh = pp.omega_h['value']/w
-    Yhe = pp.omega_he['value']/w
-    Yo = pp.omega_o['value']/w
+    Xe = (pi_e/w)**2
+    Xh = (pi_h/w)**2
+    Xhe = (pi_he/w)**2
+    Xo = (pi_o/w)**2
+    Ye = omega_e/w
+    Yh = omega_h/w
+    Yhe = omega_he/w
+    Yo = omega_o/w
 
     R = 1 - Xe/(1 + Ye) - Xh/(1 + Yh) - Xhe/(1 + Yhe) - Xo/(1 + Yo)
     L = 1 - Xe/(1 - Ye) - Xh/(1 - Yh) - Xhe/(1 - Yhe) - Xo/(1 - Yo)
