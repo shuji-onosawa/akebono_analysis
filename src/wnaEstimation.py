@@ -50,8 +50,7 @@ def split_dataset_into_half_spins(date, start_time, end_time):
     epoch = sub_dataset.coords['Epoch'].values
     for i in range(len(half_spin_idx_range_list)):
         half_spin_dataset_list.append(sub_dataset.sel(Epoch=slice(epoch[half_spin_idx_range_list[i][0]],
-                                                                  epoch[half_spin_idx_range_list[i][1]])))
-
+                                                                  epoch[half_spin_idx_range_list[i][1]-1])))
     return half_spin_dataset_list
 
 
@@ -355,6 +354,7 @@ def saveWNAEstimationByChAll(wnaDictByChAll):
 
 
 def main(date, startTime, endTime):
+    '''
     print('Split dataset into half spins...')
     halfSpinDatasetList = split_dataset_into_half_spins(date, startTime, endTime)
     print('Select spin...')
@@ -363,7 +363,7 @@ def main(date, startTime, endTime):
     angleAtPeakPwrDict = calcAngleAtPeakPwr(selectedSpinDict)
     print('Save angle at peak power...')
     saveAngleAtPeakPwr(angleAtPeakPwrDict, date, startTime, endTime)
-
+    '''
     print('Plot histogram...')
     plotAngleHist(date, startTime, endTime)
 
