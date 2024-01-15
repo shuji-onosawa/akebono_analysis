@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from calc_dispersion_in_cold_plasma import calc_dispersion_relation, calc_amp_ratio
 import os
 import csv
-
+import time
 
 def calc_angle_b0_antenna(spinPlaneNormalVec, antennaVec):
     """
@@ -171,7 +171,7 @@ def plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio
     # y軸の下限は0
     ax2.set_ylim(bottom=0)
     ax2.set_xticks([0, 45, 90, 135, 180])
-    ax2.set_xlabel('angle')
+    ax2.set_xlabel('angle (deg)')
     ax2.set_ylabel('Normalized power \n Eobs^2/Ex^2')
     ax2.legend(loc='upper right')
 
@@ -182,7 +182,7 @@ def plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio
     # y軸の下限は0
     ax3.set_ylim(bottom=0)
     ax3.set_xticks([0, 45, 90, 135, 180])
-    ax3.set_xlabel('angle')
+    ax3.set_xlabel('angle (deg)')
     ax3.set_ylabel('Normalized power \n Bobs^2/Bx^2')
     ax3.legend(loc='upper right')
 
@@ -192,7 +192,7 @@ def plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio
     # y軸の下限は0
     ax4.set_ylim(bottom=0)
     ax4.set_xticks([-180, -135, -90, -45, 0, 45, 90, 135, 180])
-    ax4.set_xlabel('angle')
+    ax4.set_xlabel('angle (deg)')
     ax4.set_ylabel('Normalized power \n Eobs^2/Ex^2')
     ax4.legend(loc='upper right')
 
@@ -202,7 +202,7 @@ def plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio
     # y軸の下限は0
     ax5.set_ylim(bottom=0)
     ax5.set_xticks([-180, -135, -90, -45, 0, 45, 90, 135, 180])
-    ax5.set_xlabel('angle')
+    ax5.set_xlabel('angle (deg)')
     ax5.set_ylabel('Normalized power \n Bobs^2/Bx^2')
     ax5.legend(loc='upper right')
 
@@ -217,16 +217,16 @@ def plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio
     plt.close()
 
     # find max power angle
-    Emax_angle = np.rad2deg(angleB0E_folded[np.argmax(EpwrObs)])
-    Bmax_angle = np.rad2deg(angleB0B_folded[np.argmax(BpwrObs)])
+    Emax_angle = angleB0E_folded[np.argmax(EpwrObs)]
+    Bmax_angle = angleB0B_folded[np.argmax(BpwrObs)]
     # 第3位を四捨五入した値を返す
-    EmaxAngleRounded = round(Emax_angle, 2)
-    BmaxAngleRounded = round(Bmax_angle, 2)
+    EmaxAngleRounded = round(Emax_angle, 0)
+    BmaxAngleRounded = round(Bmax_angle, 0)
     return EmaxAngleRounded, BmaxAngleRounded
 
 
 wnaAry = np.array([0, 10, 20, 30, 40, 50, 60,
-                    70, 80, 100, 110, 120,
+                    70, 80, 90, 100, 110, 120,
                     130, 140, 150, 160, 170, 180])
 phiAry = np.arange(0, 360, 10)
 freqList = [3.16, 5.62, 10, 17.8,
@@ -235,24 +235,24 @@ freqList = [3.16, 5.62, 10, 17.8,
             3160]
 
 saveDir = '../execute/SimulatedObservation/'
-outputDir = 'event6'
+outputDir = 'event1'
 os.makedirs(saveDir+outputDir+'/', exist_ok=True)
 B0 = 8410 # nT
-dens = 60e6 # m^-3
-densRatio = np.array([0.46, 0.11, 0.43]) # H:He:O
+dens = 60*1e6 # m^-3
+densRatio = np.array([0.46,0.11,0.43]) # H:He:O
 theta = 114 # deg
 # 設定をtxtに保存
 with open(saveDir+outputDir+'/setting.txt', 'w') as f:
     f.write('B0: '+str(B0)+' nT\n')
     f.write('dens: '+str(dens)+' m^-3\n')
-    f.write('densRatio: '+str(densRatio)+'\n')
+    f.write('densRatio: '+str(densRatio[0])+','+str(densRatio[1])+','+str(densRatio[2])+'\n')
     f.write('theta: '+str(theta)+' deg\n')
     f.write('wnaAry: '+str(wnaAry)+'\n')
     f.write('phiAry: '+str(phiAry)+'\n')
     f.write('freqList: '+str(freqList)+'\n')
 
-for mode in ['r', 'l']:
-    for freq in freqList:
+for freq in freqList:
+    for mode in ['r', 'l']:
         # wna_listとphi_listの最初の値で計算を行い、np.nanが返ってきたら計算を行わない
         wna = wnaAry[0]
         phi = phiAry[0]
@@ -263,12 +263,20 @@ for mode in ['r', 'l']:
         # 返り値がFalseでない場合は、計算を行う
         os.makedirs(saveDir+outputDir+'/', exist_ok=True)
         csvSaveName = saveDir+outputDir+'/pyEmax_Bmax_angle_freq-{}_mode-{}.csv'
+        # csvファイルが存在する場合は、上書きせずに計算をスキップする
+        if os.path.exists(csvSaveName.format(freq, mode)) == True:
+            print('Already exists:', csvSaveName.format(freq, mode))
+            continue
         with open(csvSaveName.format(freq, mode), 'a') as f:
             writer = csv.writer(f)
-            writer.writerow([""]+phiAry.tolist())
-            for wna in wnaAry:
+            writer.writerow([""]+wnaAry.tolist())
+            for phi in phiAry:
+                # 現時点の時刻を取得
+                now = time.time()
                 anglePairsList = []
-                for phi in phiAry:
+                for wna in wnaAry:
                     EmaxAngle, BmaxAngle = plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio, mode, outputDir)
                     anglePairsList.append(str(EmaxAngle)+'v'+str(BmaxAngle))
-                writer.writerow([wna]+anglePairsList)
+                writer.writerow([str(phi)]+anglePairsList)
+                # 1周の計算にかかった時間を表示
+                print('time:', time.time()-now, 's')
