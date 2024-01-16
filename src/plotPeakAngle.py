@@ -131,6 +131,7 @@ def plotAngleHist(date, startTime, endTime):
         countEpeak, binEpeak = np.histogram(EpeakAngleFolded, bins=18, range=(0, 180))
         countB, binB = np.histogram(angleB0BFolded, bins=18, range=(0, 180))
         countBpeak, binBpeak = np.histogram(BpeakAngleFolded, bins=18, range=(0, 180))
+
         # error
         countEPeakError = np.sqrt(countEpeak)
         countBPeakError = np.sqrt(countBpeak)
@@ -178,6 +179,7 @@ def plotAngleHist(date, startTime, endTime):
         ax[0].set_title('E angle percentage distribution @ '+freqLabel[ch]+' Hz')
         ax[0].set_xlabel('Angle (deg)')
         ax[0].set_ylabel('Percentage (%)')
+        ax[0].set_ylim(0, 100)
 
         ax[1].hist(binB[:-1], bins=binB, weights=countBPeakPercent)
         ax[1].errorbar(binB[:-1]+5, countBPeakPercent, yerr=countBPeakPercentError,
@@ -185,6 +187,7 @@ def plotAngleHist(date, startTime, endTime):
         ax[1].set_title('B angle percentage distribution @ '+freqLabel[ch]+' Hz')
         ax[1].set_xlabel('Angle (deg)')
         ax[1].set_ylabel('Percentage (%)')
+        ax[1].set_ylim(0, 100)
         plt.tight_layout()
         saveName = 'percent_hist_'+freqLabel[ch]+'Hz'
         plt.savefig(saveDir+saveName+'.png')

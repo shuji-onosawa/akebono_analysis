@@ -50,8 +50,7 @@ def split_dataset_into_half_spins(date, start_time, end_time):
     epoch = sub_dataset.coords['Epoch'].values
     for i in range(len(half_spin_idx_range_list)):
         half_spin_dataset_list.append(sub_dataset.sel(Epoch=slice(epoch[half_spin_idx_range_list[i][0]],
-                                                                  epoch[half_spin_idx_range_list[i][1]])))
-
+                                                                  epoch[half_spin_idx_range_list[i][1]-1])))
     return half_spin_dataset_list
 
 
@@ -355,6 +354,7 @@ def saveWNAEstimationByChAll(wnaDictByChAll):
 
 
 def main(date, startTime, endTime):
+    '''
     print('Split dataset into half spins...')
     halfSpinDatasetList = split_dataset_into_half_spins(date, startTime, endTime)
     print('Select spin...')
@@ -363,11 +363,16 @@ def main(date, startTime, endTime):
     angleAtPeakPwrDict = calcAngleAtPeakPwr(selectedSpinDict)
     print('Save angle at peak power...')
     saveAngleAtPeakPwr(angleAtPeakPwrDict, date, startTime, endTime)
-
+    '''
     print('Plot histogram...')
     plotAngleHist(date, startTime, endTime)
 
-dateList = ['1990-02-11', '1990-02-17', '1990-02-25', '1990-03-02', '1990-03-06']
+dateList = ['1990-02-11', '1990-02-17', '1990-02-25', '1990-02-25', '1990-03-02', '1990-03-06']
+startTimeList = ['18:05:00', '03:45:00', '12:22:30', '15:49:00', '14:53:30', '14:06:00']
+endTimeList = ['18:10:00', '03:50:00', '12:27:30', '15:54:00', '14:58:30', '14:11:00']
+
+for date, startTime, endTime in zip(dateList, startTimeList, endTimeList):
+    main(date, startTime, endTime)
 
 '''
     print("Plotting angle at peak power...")
