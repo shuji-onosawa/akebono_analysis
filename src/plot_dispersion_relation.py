@@ -6,16 +6,31 @@ import os
 
 
 def plotFreqVsWavelength(waveNormalAngle, save_dir):
-    # before running this script, check plasma parameters in plasma_params.py
+    # before running this script, check plasma parameters
+    B0 = 5654 # [nT]
+    dens = 71*1e6 # [m^-3]
+    ion_ratio = [0.30, 0.06, 0.64]  # NH+:NHe+:NO+
+
+
+    # characteristic frequencies
+    Q = 1.602176634e-19  # [C]
+    ME = 9.1093837015e-31  # [kg]
+    MH = 1.67262192369e-27  # [kg]
+    MHE = 6.646477e-27  # [kg]
+    MO = 2.6566962e-26  # [kg]
+    B0_T = B0*1e-9  # [T]
+    omega_e = -Q*B0_T/ME # [rad/s]
+    omega_h = Q*B0_T/MH # [rad/s]
+    omega_he = Q*B0_T/MHE # [rad/s]
+    omega_o = Q*B0_T/MO # [rad/s]
+    char_freq = np.array([omega_he, omega_h, omega_o, -omega_e, pp.wlh['value']])
 
     # set parameters
-    omega_s = pp.wlh
-    freq = np.abs(omega_s['value'])*np.logspace(-3, 1, 10000)
+    freq = np.abs(5*1e3*2*np.pi)*np.logspace(-4, 1, 10000)
 
     # calc dispersion relation
-    n_L, n_R, S, D, P = calc_dr.calc_dispersion_relation(freq, waveNormalAngle)
+    n_L, n_R, S, D, P = calc_dr.calc_dispersion_relation(freq, waveNormalAngle, B0, dens, ion_ratio)
 
-    char_freq = np.array([pp.omega_he['value'], pp.omega_h['value'], pp.omega_o['value'], -pp.omega_e['value'], pp.wlh['value']])/omega_s['value']
     # plot frequency vs wave number
     fig, axs = plt.subplots(nrows=1, ncols=1, figsize=[8, 8])
     axs.scatter(x=freq*n_L**0.5/pp.C/2/np.pi, y=freq/2/np.pi, label=r'$L mode$', c='r', marker='.')
@@ -23,11 +38,11 @@ def plotFreqVsWavelength(waveNormalAngle, save_dir):
 
     xmax = 5e-4
     xmin = 1e-7
-    axs.hlines(char_freq*omega_s['value']/2/np.pi, xmin, xmax, linestyles='dashed', colors='k')  # charateristic frequencies
+    axs.hlines(char_freq/2/np.pi, xmin, xmax, linestyles='dashed', colors='k')  # charateristic frequencies
     axs.hlines([3.16, 5.62, 10, 17.8, 31.6, 56.2, 100, 178, 316, 562], xmin, xmax, linestyles='dashed', colors='k', alpha=0.5)  # MCA's center frequencies
 
     axs.set_xlim(xmin, xmax)
-    axs.set_ylim(1, np.abs(omega_s['value'])/2/np.pi)
+    axs.set_ylim(1, 5*1e3)
     axs.set_xscale('log')
     axs.set_yscale('log')
     axs.set_xlabel(r'$1/\lambda [m^-1]$')
@@ -76,5 +91,5 @@ def plotRefractionIndexVsFrequency(waveNormalAngle, save_dir):
 
 
 for wna in [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]:
-    save_dir = '../plots/dispersion_relation/'
-    plotRefractionIndexVsFrequency(wna, save_dir)
+    save_dir = '../plots/dispersion_relation/event2/'
+    plotFreqVsWavelength(wna, save_dir)
