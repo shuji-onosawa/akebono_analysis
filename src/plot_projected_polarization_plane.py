@@ -126,16 +126,16 @@ def plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio
     # rad -> deg
     angleB0E = np.rad2deg(angleB0E)
     angleB0B = np.rad2deg(angleB0B)
+    angleB0E_folded = np.where(angleB0E > 0, angleB0E, angleB0E+180)
+    angleB0B_folded = np.where(angleB0B > 0, angleB0B, angleB0B+180)
 
     # スピン軸、偏波面の3Dプロットと角度vs電場強度、磁場強度のプロット
     k_vec_rotated = np.dot(phiRotationMatrix, k_vec)
-    fig = plt.figure(figsize=(24, 12))
-    gs = fig.add_gridspec(2, 4)
-    ax1 = fig.add_subplot(gs[:2, :2], projection='3d')
-    ax2 = fig.add_subplot(gs[0, 2])
-    ax3 = fig.add_subplot(gs[0, 3])
-    ax4 = fig.add_subplot(gs[1, 2])
-    ax5 = fig.add_subplot(gs[1, 3])
+    fig = plt.figure(figsize=(18, 6))  # 横3枚のsubplotsを作成
+    ax1 = fig.add_subplot(131, projection='3d')
+    ax2 = fig.add_subplot(132)
+    ax3 = fig.add_subplot(133)
+
     # 3D plot
     ax1.quiver(0, 0, 0,
                 spinPlaneNormalVec[0], spinPlaneNormalVec[1], spinPlaneNormalVec[2],
@@ -165,7 +165,6 @@ def plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio
     ax1.legend(loc='lower right')
 
     # angle vs power plot (0-180 deg) for E field
-    angleB0E_folded = np.where(angleB0E > 0, angleB0E, angleB0E+180)
     ax2.scatter(angleB0E_folded, EpwrObs, color='r', label='E field')
     ax2.set_xlim(0, 180)
     # y軸の下限は0
@@ -176,7 +175,6 @@ def plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio
     ax2.legend(loc='upper right')
 
     # angle vs power plot (0-180 deg) for B field
-    angleB0B_folded = np.where(angleB0B > 0, angleB0B, angleB0B+180)
     ax3.scatter(angleB0B_folded, BpwrObs, color='b', label='B field')
     ax3.set_xlim(0, 180)
     # y軸の下限は0
@@ -185,26 +183,6 @@ def plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio
     ax3.set_xlabel('angle (deg)')
     ax3.set_ylabel('Normalized power \n Bobs^2/Bx^2')
     ax3.legend(loc='upper right')
-
-    # angle vs power plot (-180 - 180 deg) for E field
-    ax4.scatter(angleB0E, EpwrObs, color='r', label='E field')
-    ax4.set_xlim(-180, 180)
-    # y軸の下限は0
-    ax4.set_ylim(bottom=0)
-    ax4.set_xticks([-180, -135, -90, -45, 0, 45, 90, 135, 180])
-    ax4.set_xlabel('angle (deg)')
-    ax4.set_ylabel('Normalized power \n Eobs^2/Ex^2')
-    ax4.legend(loc='upper right')
-
-    # angle vs power plot (-180 - 180 deg) for B field
-    ax5.scatter(angleB0B, BpwrObs, color='b', label='B field')
-    ax5.set_xlim(-180, 180)
-    # y軸の下限は0
-    ax5.set_ylim(bottom=0)
-    ax5.set_xticks([-180, -135, -90, -45, 0, 45, 90, 135, 180])
-    ax5.set_xlabel('angle (deg)')
-    ax5.set_ylabel('Normalized power \n Bobs^2/Bx^2')
-    ax5.legend(loc='upper right')
 
     # save figure
     if mode == 'l':
@@ -229,10 +207,7 @@ wnaAry = np.array([0, 10, 20, 30, 40, 50, 60,
                     70, 80, 90, 100, 110, 120,
                     130, 140, 150, 160, 170, 180])
 phiAry = np.arange(0, 360, 10)
-freqList = [3.16, 5.62, 10, 17.8,
-            31.6, 56.2, 100, 178,
-            316, 562, 1000, 1780,
-            3160]
+freqList = [3.16]
 
 saveDir = '../execute/SimulatedObservation/'
 outputDir = 'event1'
