@@ -362,12 +362,15 @@ def main(date, startTime, endTime):
     angleAtPeakPwrDict = calcAngleAtPeakPwr(selectedSpinDict)
     print('Save angle at peak power...')
     saveAngleAtPeakPwr(angleAtPeakPwrDict, date, startTime, endTime)
+    print("Plotting angle at peak power...")
+    plotPeakAngle(date, startTime, endTime, fold=True)
     print('Plot histogram...')
     plotAngleHist(date, startTime, endTime)
 
-dateList = ['1990-02-11']
-startTimeList = ['18:08:20']
-endTimeList = ['18:10:00']
+dateList = ['1990-02-11', '1990-03-06', '1990-02-17', '1990-02-25', '1990-02-25', '1990-03-02']
+startTimeList = ['18:05:00', '14:05:00', '03:45:00', '12:22:00', '15:49:00', '14:53:00']
+endTimeList = ['18:10:00', '14:15:00', '03:50:00', '12:27:00', '15:54:00', '14:58:00']
+
 
 for date, startTime, endTime in zip(dateList, startTimeList, endTimeList):
     main(date, startTime, endTime)
