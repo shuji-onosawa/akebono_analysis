@@ -45,6 +45,19 @@ def readSimObsCsv(file_path):
 
     return row_labels, column_labels, leftValMatrix, rightValMatrix
 
+def replace_out_of_range_with_nan(matrix, min_val, max_val):
+    """
+    2次元配列中の値で最小値と最大値の間にないものをnanで置き換える。
+
+    :param matrix: 2次元配列
+    :param min_val: 最小値
+    :param max_val: 最大値
+    :return: 変更された2次元配列
+    """
+    matrix = np.array(matrix)  # 2次元配列をnumpy配列に変換
+    matrix[(matrix < min_val) | (matrix > max_val)] = np.nan  # 条件に合わない値をnanで置き換え
+    return matrix
+
 def plot_mesh(matrix, row_labels, col_labels, title, cmax, cmin):
     # matrix の最大値と最小値を取得
     matrix_max = np.nanmax(matrix)
@@ -80,6 +93,7 @@ def plot_mesh(matrix, row_labels, col_labels, title, cmax, cmin):
     plt.savefig(saveDir + title + '.png')
     plt.close()
 
+
 # 実行部分
 ferqList = [3.16, 5.62, 10.0, 17.8, 31.6, 56.2, 100, 178, 316, 562, 1000,
             1780, 3160]
@@ -93,9 +107,12 @@ row_labels, column_labels, leftValMatrix, rightValMatrix = readSimObsCsv(csvDir 
 
 cmin, cmax = 150, 160
 title = 'freq-' + str(freq) + '_mode-' + mode+'_B'
-plot_mesh(rightValMatrix, row_labels, column_labels, title, cmax, cmin)
-cmin, cmax = 20, 60
+replacedRightValMatrix = replace_out_of_range_with_nan(rightValMatrix, cmin, cmax)
+plot_mesh(replacedRightValMatrix, row_labels, column_labels, title, cmax, cmin)
+
+cmin, cmax = 30, 50
 title = 'freq-' + str(freq) + '_mode-' + mode+'_E'
-plot_mesh(leftValMatrix, row_labels, column_labels, title, cmax, cmin)
+replacedLeftValMatrix = replace_out_of_range_with_nan(leftValMatrix, cmin, cmax)
+plot_mesh(replacedLeftValMatrix, row_labels, column_labels, title, cmax, cmin)
 
 
