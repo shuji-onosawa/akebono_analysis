@@ -45,25 +45,34 @@ def readSimObsCsv(file_path):
 
     return row_labels, column_labels, leftValMatrix, rightValMatrix
 
-def replace_out_of_range_with_nan(matrix, min_val, max_val):
+def replace_out_of_ranges_with_nan(matrix, minValList, maxValList):
     """
-    2次元配列中の値で最小値と最大値の間にないものをnanで置き換える。
+    2次元配列中の値で指定された複数の範囲にないものをnanで置き換える。
 
     :param matrix: 2次元配列
-    :param min_val: 最小値
-    :param max_val: 最大値
+    :param minValList: 最小値のリスト
+    :param maxValList: 最大値のリスト
     :return: 変更された2次元配列
     """
+    if len(minValList) != len(maxValList):
+        raise ValueError("minValListとmaxValListの長さが一致しません")
+
     matrix = np.array(matrix)  # 2次元配列をnumpy配列に変換
-    matrix[(matrix < min_val) | (matrix > max_val)] = np.nan  # 条件に合わない値をnanで置き換え
+    mask = np.zeros(matrix.shape, dtype=bool)  # すべての要素がFalseのマスクを作成
+
+    # 各範囲についてマスクを更新
+    for min_val, max_val in zip(minValList, maxValList):
+        mask |= (matrix >= min_val) & (matrix <= max_val)
+
+    matrix[~mask] = np.nan  # マスクに合致しない値をnanで置き換え
     return matrix
 
 def plot_mesh(matrix, row_labels, col_labels, title, cmax, cmin):
-    # matrix の最大値と最小値を取得
-    matrix_max = np.nanmax(matrix)
-    matrix_min = np.nanmin(matrix)
+    # row_labelsのコピーを作成
+    row_labels = row_labels.copy()
 
-    fig, ax = plt.subplots()
+    # figsizeを設定
+    fig, ax = plt.subplots(figsize=(4, 3))
     c = ax.pcolormesh(matrix, cmap='viridis', vmin=cmin, vmax=cmax)  # カラーマップと値の範囲を設定  # カラーマップを選択
     ax.set_title(title)
 
@@ -75,8 +84,8 @@ def plot_mesh(matrix, row_labels, col_labels, title, cmax, cmin):
     # col_labelsは文字列なので、indexを取得するためにstrに変換
     ax.set_yticks(np.array([row_labels.index(label) for label in y_major_ticks])+0.5)
 
-    ax.set_xticklabels(x_major_ticks)
-    ax.set_yticklabels(y_major_ticks)
+    ax.set_xticklabels(x_major_ticks, size=12)
+    ax.set_yticklabels(y_major_ticks, size=12)
 
     # 縦軸と横軸の副目盛りを設定
     ax.set_xticks(np.arange(len(col_labels))+0.5, minor=True)
@@ -99,20 +108,24 @@ ferqList = [3.16, 5.62, 10.0, 17.8, 31.6, 56.2, 100, 178, 316, 562, 1000,
             1780, 3160]
 modeList = ['l', 'r']
 
-mode = 'r'
-freq = 3.16
+mode = 'l'
+freq = 5.62
 csvDir = '../execute/SimulatedObservation/event1/'
 csvFileName = 'pyEmax_Bmax_angle_freq-' + str(freq) + '_mode-' + mode + '.csv'
 row_labels, column_labels, leftValMatrix, rightValMatrix = readSimObsCsv(csvDir + csvFileName)
 
-cmin, cmax = 150, 160
+cmin, cmax = 0, 180
+minValList = [20, 40]
+maxValList = [30, 50]
 title = 'freq-' + str(freq) + '_mode-' + mode+'_B'
-replacedRightValMatrix = replace_out_of_range_with_nan(rightValMatrix, cmin, cmax)
+replacedRightValMatrix = replace_out_of_ranges_with_nan(rightValMatrix, minValList, maxValList)
 plot_mesh(replacedRightValMatrix, row_labels, column_labels, title, cmax, cmin)
 
-cmin, cmax = 30, 50
+cmin, cmax = 0, 180
+minValList = [20, 50]
+maxValList = [40, 70]
 title = 'freq-' + str(freq) + '_mode-' + mode+'_E'
-replacedLeftValMatrix = replace_out_of_range_with_nan(leftValMatrix, cmin, cmax)
+replacedLeftValMatrix = replace_out_of_ranges_with_nan(leftValMatrix, minValList, maxValList)
 plot_mesh(replacedLeftValMatrix, row_labels, column_labels, title, cmax, cmin)
 
 
