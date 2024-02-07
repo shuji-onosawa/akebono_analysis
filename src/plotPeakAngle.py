@@ -76,9 +76,7 @@ def plotPeakAngle(date, startTime, endTime, fold, color='k'):
         + endTime[0:2] + endTime[3:5] + endTime[6:8] + '/'
     os.makedirs(saveDir, exist_ok=True)
     for i in range(16):
-        saveName = 'angleAtPeakPwr'+freqLabel[i]+'Hz_'+'threshold'+str(df['thresholdPercent'].values[0])
-        if fold:
-            saveName += 'folded'
+        saveName = 'angleAtPeakPwr'+freqLabel[i]+'Hz'
         pytplot.tplot(['akb_mca_Emax_pwr', 'AngleAtPeakEpwrCh'+str(i), 'akb_mca_Bmax_pwr', 'AngleAtPeakBpwrCh'+str(i)],
                     xsize=12, ysize=10,
                     save_jpeg=saveDir+saveName,

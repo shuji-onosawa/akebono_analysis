@@ -128,7 +128,7 @@ def plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio
     angleB0B = np.rad2deg(angleB0B)
     angleB0E_folded = np.where(angleB0E > 0, angleB0E, angleB0E+180)
     angleB0B_folded = np.where(angleB0B > 0, angleB0B, angleB0B+180)
-
+    '''
     # スピン軸、偏波面の3Dプロットと角度vs電場強度、磁場強度のプロット
     k_vec_rotated = np.dot(phiRotationMatrix, k_vec)
     fig = plt.figure(figsize=(18, 6))  # 横3枚のsubplotsを作成
@@ -193,7 +193,7 @@ def plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio
     os.makedirs(savefig_dir, exist_ok=True)
     plt.savefig(savefig_dir+'phi'+str(phi)+'.jpeg', dpi=300)
     plt.close()
-
+    '''
     # find max power angle
     Emax_angle = angleB0E_folded[np.argmax(EpwrObs)]
     Bmax_angle = angleB0B_folded[np.argmax(BpwrObs)]
@@ -207,15 +207,16 @@ wnaAry = np.array([0, 10, 20, 30, 40, 50, 60,
                     70, 80, 90, 100, 110, 120,
                     130, 140, 150, 160, 170, 180])
 phiAry = np.arange(0, 360, 10)
-freqList = [3.16]
+freqList = [316, 562, 1000, 1780]
 
 saveDir = '../execute/SimulatedObservation/'
-outputDir = 'event1'
+outputDir = 'event1_test'
 os.makedirs(saveDir+outputDir+'/', exist_ok=True)
 B0 = 8410 # nT
 dens = 60*1e6 # m^-3
 densRatio = np.array([0.46,0.11,0.43]) # H:He:O
 theta = 114 # deg
+
 # 設定をtxtに保存
 with open(saveDir+outputDir+'/setting.txt', 'w') as f:
     f.write('B0: '+str(B0)+' nT\n')
@@ -225,10 +226,8 @@ with open(saveDir+outputDir+'/setting.txt', 'w') as f:
     f.write('wnaAry: '+str(wnaAry)+'\n')
     f.write('phiAry: '+str(phiAry)+'\n')
     f.write('freqList: '+str(freqList)+'\n')
-
 for freq in freqList:
     for mode in ['r', 'l']:
-        # wna_listとphi_listの最初の値で計算を行い、np.nanが返ってきたら計算を行わない
         wna = wnaAry[0]
         phi = phiAry[0]
         EmaxAngleTest, BmaxAngleTest = plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio, mode, outputDir)
@@ -238,20 +237,14 @@ for freq in freqList:
         # 返り値がFalseでない場合は、計算を行う
         os.makedirs(saveDir+outputDir+'/', exist_ok=True)
         csvSaveName = saveDir+outputDir+'/pyEmax_Bmax_angle_freq-{}_mode-{}.csv'
-        # csvファイルが存在する場合は、上書きせずに計算をスキップする
-        if os.path.exists(csvSaveName.format(freq, mode)) == True:
-            print('Already exists:', csvSaveName.format(freq, mode))
-            continue
         with open(csvSaveName.format(freq, mode), 'a') as f:
             writer = csv.writer(f)
             writer.writerow([""]+wnaAry.tolist())
             for phi in phiAry:
-                # 現時点の時刻を取得
-                now = time.time()
-                anglePairsList = []
-                for wna in wnaAry:
-                    EmaxAngle, BmaxAngle = plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio, mode, outputDir)
-                    anglePairsList.append(str(EmaxAngle)+'v'+str(BmaxAngle))
-                writer.writerow([str(phi)]+anglePairsList)
-                # 1周の計算にかかった時間を表示
-                print('time:', time.time()-now, 's')
+                    # 現時点の時刻を取得
+                    now = time.time()
+                    anglePairsList = []
+                    for wna in wnaAry:
+                        EmaxAngle, BmaxAngle = plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio, mode, outputDir)
+                        anglePairsList.append(str(EmaxAngle)+'v'+str(BmaxAngle))
+                    writer.writerow([str(phi)]+anglePairsList)
