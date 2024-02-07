@@ -303,6 +303,7 @@ def orb_postprocessing(files):
     bmdl = np.array([[data['bmdl_x']], [data['bmdl_y']], [data['bmdl_z']]]).transpose([2, 0, 1]).squeeze()
     bmdl = np.float64(bmdl)
     bmdl_scaler = np.sqrt(np.sum(bmdl**2, axis=1))
+    store_data(prefix + 'sc_pos', data={'x': unix_times, 'y': xyz})
     store_data(prefix + 'geo', data={'x': unix_times, 'y': xyz_re})
     store_data(prefix + 'gdlat', data={'x': unix_times, 'y': np.float64(data['gclat'])})
     store_data(prefix + 'gdlon', data={'x': unix_times, 'y': np.float64(data['gclon'])})

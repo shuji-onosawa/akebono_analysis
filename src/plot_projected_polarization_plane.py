@@ -213,7 +213,7 @@ saveDir = '../execute/SimulatedObservation/'
 outputDir = 'event1_test'
 os.makedirs(saveDir+outputDir+'/', exist_ok=True)
 B0 = 8410 # nT
-dens = 60*1e6 # m^-3
+dens = 61*1e6 # m^-3
 densRatio = np.array([0.46,0.11,0.43]) # H:He:O
 theta = 114 # deg
 
@@ -237,14 +237,16 @@ for freq in freqList:
         # 返り値がFalseでない場合は、計算を行う
         os.makedirs(saveDir+outputDir+'/', exist_ok=True)
         csvSaveName = saveDir+outputDir+'/pyEmax_Bmax_angle_freq-{}_mode-{}.csv'
-        with open(csvSaveName.format(freq, mode), 'a') as f:
+        with open(csvSaveName.format(freq, mode), 'w') as f:
             writer = csv.writer(f)
             writer.writerow([""]+wnaAry.tolist())
             for phi in phiAry:
-                    # 現時点の時刻を取得
-                    now = time.time()
-                    anglePairsList = []
-                    for wna in wnaAry:
-                        EmaxAngle, BmaxAngle = plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio, mode, outputDir)
-                        anglePairsList.append(str(EmaxAngle)+'v'+str(BmaxAngle))
-                    writer.writerow([str(phi)]+anglePairsList)
+                # 現時点の時刻を取得
+                now = time.time()
+                anglePairsList = []
+                for wna in wnaAry:
+                    EmaxAngle, BmaxAngle = plot_projected_polarization_plane(theta, wna, phi, freq, B0, dens, densRatio, mode, outputDir)
+                    anglePairsList.append(str(EmaxAngle)+'v'+str(BmaxAngle))
+                writer.writerow([str(phi)]+anglePairsList)
+                # 1周の計算にかかった時間を表示
+                print('time:', time.time()-now, 's')

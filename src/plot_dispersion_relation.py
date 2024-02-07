@@ -7,9 +7,9 @@ import os
 
 def plotFreqVsWavelength(waveNormalAngle, save_dir):
     # before running this script, check plasma parameters
-    B0 = 5654 # [nT]
-    dens = 71*1e6 # [m^-3]
-    ion_ratio = [0.30, 0.06, 0.64]  # NH+:NHe+:NO+
+    B0 = 8410 # [nT]
+    dens = 61*1e6 # [m^-3]
+    ion_ratio = [0.46,0.11,0.43]  # NH+:NHe+:NO+
 
 
     # characteristic frequencies
@@ -91,5 +91,5 @@ def plotRefractionIndexVsFrequency(waveNormalAngle, save_dir):
 
 
 for wna in [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]:
-    save_dir = '../plots/dispersion_relation/event2/'
+    save_dir = '../plots/dispersion_relation/event1/'
     plotFreqVsWavelength(wna, save_dir)
