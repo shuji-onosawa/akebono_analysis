@@ -5,13 +5,23 @@ import csv
 
 def get_peak_angle(theta, phi, wna, freq, mode):
     """
-    theta: angle between spin plane normal vector and z axis
+    Get peak angle of E field and B field on spin plane
+    Before using this function, you should set the constants in this function\n
+    
+    Parameters\n
+    theta: angle between spin plane normal vector and z axis\n
     phi: angle between projection vector of spin plane normal vector
-    on x-y plane and x axis
-    wna: wave normal angle
-    freq: wave frequency [Hz]
-    mode: 'l' or 'r'
+    on x-y plane and x axis\n
+    wna: wave normal angle\n
+    freq: wave frequency [Hz]\n
+    mode: 'l' or 'r'\n
     """
+    # constants
+    B0 = 5e-9  # T
+    dens = 1e6  # m^-3
+    densRatio = [1, 0, 0]
+
+    # calc satellite spin plane normal vector and projection vector
     theta_rad = np.deg2rad(theta)
     phi_rad = np.deg2rad(phi)
 
@@ -29,12 +39,12 @@ def get_peak_angle(theta, phi, wna, freq, mode):
                             np.cos(phase)*spin_plane_unit_vec1[1] + np.sin(phase)*spin_plane_unit_vec2[1],
                             np.cos(phase)*spin_plane_unit_vec1[2] + np.sin(phase)*spin_plane_unit_vec2[2]])
 
-    # wave polarization plane
+    # calcuration of amplitude ratio
     wna = wna
     freq = freq  # Hz
     angle_freq = 2*np.pi*freq
 
-    n_L, n_R, S, D, P = calc_dispersion_relation(angle_freq, wna)
+    n_L, n_R, S, D, P = calc_dispersion_relation(angle_freq, wna, B0, dens, densRatio)
     if mode == 'l':
         # left hand circular polarization
         Ey_Ex, Ez_Ex, By_Bx, Bz_Bx, E_cB = calc_amp_ratio(n_L, S, D, P, wna)
@@ -56,13 +66,13 @@ def get_peak_angle(theta, phi, wna, freq, mode):
         BvecProjVec[i] = np.nanmax(BvecDotAntenna)*antenna_vec[:, i]
     # angle between z axis and field vectors
     # calc angle between z axis and E field vectors
-    normarized_Evec_proj_vec = Evec_proj_vec/np.linalg.norm(Evec_proj_vec, axis=1).reshape(-1, 1)
+    normarized_Evec_proj_vec = EvecProjVec/np.linalg.norm(EvecProjVec, axis=1).reshape(-1, 1)
     angle_E_b0 = np.arccos(np.dot(normarized_Evec_proj_vec, np.array([0, 0, 1]).reshape(3, 1)))
     for i in range(len(angle_E_b0)):
         if np.dot(normarized_Evec_proj_vec[i], spin_plane_unit_vec2) < 0:
             angle_E_b0[i] = -angle_E_b0[i]
     # calc angle between z axis and B field vectors
-    normarized_Bvec_proj_vec = Bvec_proj_vec/np.linalg.norm(Bvec_proj_vec, axis=1).reshape(-1, 1)
+    normarized_Bvec_proj_vec = BvecProjVec/np.linalg.norm(BvecProjVec, axis=1).reshape(-1, 1)
     angle_B_b0 = np.arccos(np.dot(normarized_Bvec_proj_vec, np.array([0, 0, 1]).reshape(3, 1)))
     for i in range(len(angle_B_b0)):
         if np.dot(normarized_Bvec_proj_vec[i], spin_plane_unit_vec2) < 0:
@@ -70,8 +80,8 @@ def get_peak_angle(theta, phi, wna, freq, mode):
 
     # plot angle dependence of power
     # calc field vector norm
-    Evec_proj_vec_norm = np.linalg.norm(Evec_proj_vec, axis=1)
-    Bvec_proj_vec_norm = np.linalg.norm(Bvec_proj_vec, axis=1)
+    Evec_proj_vec_norm = np.linalg.norm(EvecProjVec, axis=1)
+    Bvec_proj_vec_norm = np.linalg.norm(BvecProjVec, axis=1)
 
     Emax_angle = np.rad2deg(angle_E_b0[np.argmax(Evec_proj_vec_norm)])
     Bmax_angle = np.rad2deg(angle_B_b0[np.argmax(Bvec_proj_vec_norm)])
