@@ -10,33 +10,40 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plotPeakAngle(date, startTime, endTime, fold, color='k'):
+import os
+import pandas as pd
+import pytplot
+
+def plotPeakAngle(date, startTime, endTime, EpwrRatioThreshold, BpwrRatioThreshold, fold, color='k'):
     """
     Args:
         date (str): 日付, yyyy-mm-dd
         startTime (str): 開始時刻, hh:mm:ss
         endTime (str): 終了時刻, hh:mm:ss
+        EpwrRatioThreshold (float): 電力比率しきい値
+        BpwrRatioThreshold (float): 磁場電力比率しきい値
         fold (bool): 角度を0~180度に折り返すか否か
         color (str): マーカーの色
     """
-    # constant
+    # 定数の設定
     freqLabel = ['3.16', '5.62', '10', '17.8',
                 '31.6', '56.2', '100', '178',
                 '316', '562', '1000', '1780',
                 '3160', '5620', '10000', '17800']
 
-    # Read the CSV file
-    csvSaveDir = '../execute/wnaEstimation/'+ date + '_' \
-        + startTime[0:2] + startTime[3:5] + startTime[6:8] + '-' \
-        + endTime[0:2] + endTime[3:5] + endTime[6:8] + '/'
-    df = pd.read_csv(csvSaveDir+'peakAngleObs.csv')
+    # CSVファイルの読み込み
+    csvSaveDir = '../execute/peakAngleObs/'
+    csvFileName = date.replace('-', '') + '_' \
+                  + startTime.replace(':', '') + '-' + endTime.replace(':', '') + '_' \
+                  + str(EpwrRatioThreshold) + '-' + str(BpwrRatioThreshold) + '.csv'
+    df = pd.read_csv(os.path.join(csvSaveDir, csvFileName))
 
-    # Convert 'timeAtPeak*pwrCh*' to datetime
+    # 日時データの変換
     for i in range(16):
-        df['timeAtPeakEpwrCh'+str(i)] = pd.to_datetime(df['timeAtPeakEpwrCh'+str(i)])
-        df['timeAtPeakBpwrCh'+str(i)] = pd.to_datetime(df['timeAtPeakBpwrCh'+str(i)])
+        df['timeAtPeakEpwrCh' + str(i)] = pd.to_datetime(df['timeAtPeakEpwrCh' + str(i)])
+        df['timeAtPeakBpwrCh' + str(i)] = pd.to_datetime(df['timeAtPeakBpwrCh' + str(i)])
 
-    # store data
+    # データの保存とプロット設定
     for i in range(16):
         yrange = [-180, 180]
         ymajor_ticks = [-180, -90, 0, 90, 180]
@@ -44,43 +51,46 @@ def plotPeakAngle(date, startTime, endTime, fold, color='k'):
         if fold:
             yrange = [0, 180]
             ymajor_ticks = [0, 90, 180]
-            df['angleAtPeakEpwrCh'+str(i)] = preprocess_mgf_angle(df['angleAtPeakEpwrCh'+str(i)])
-            df['angleAtPeakBpwrCh'+str(i)] = preprocess_mgf_angle(df['angleAtPeakBpwrCh'+str(i)])
+            df['angleAtPeakEpwrCh' + str(i)] = preprocess_mgf_angle(df['angleAtPeakEpwrCh' + str(i)].to_numpy())    
+            df['angleAtPeakBpwrCh' + str(i)] = preprocess_mgf_angle(df['angleAtPeakBpwrCh' + str(i)].to_numpy())
 
-        pytplot.store_data('AngleAtPeakEpwrCh'+str(i),
-                        data={'x': df['timeAtPeakEpwrCh'+str(i)],
-                                'y': df['angleAtPeakEpwrCh'+str(i)]})
-        pytplot.options('AngleAtPeakEpwrCh'+str(i),
+        pytplot.store_data('AngleAtPeakEpwrCh' + str(i),
+                           data={'x': df['timeAtPeakEpwrCh' + str(i)],
+                                 'y': df['angleAtPeakEpwrCh' + str(i)]})
+        pytplot.options('AngleAtPeakEpwrCh' + str(i),
                         opt_dict={'yrange': yrange, 'y_major_ticks': ymajor_ticks, 'y_minor_tick_interval': yminor_tick_interval,
-                        'color': color, 'marker': '.', 'line_style': ' ',
-                        'ytitle': f'Angle (deg) @ {freqLabel[i]} Hz'})
-        pytplot.store_data('AngleAtPeakBpwrCh'+str(i),
-                        data={'x': df['timeAtPeakBpwrCh'+str(i)],
-                                'y': df['angleAtPeakBpwrCh'+str(i)]})
-        pytplot.options('AngleAtPeakBpwrCh'+str(i),
+                                  'color': color, 'marker': '.', 'line_style': ' ',
+                                  'ytitle': f'Angle (deg) @ {freqLabel[i]} Hz'})
+        pytplot.store_data('AngleAtPeakBpwrCh' + str(i),
+                           data={'x': df['timeAtPeakBpwrCh' + str(i)],
+                                 'y': df['angleAtPeakBpwrCh' + str(i)]})
+        pytplot.options('AngleAtPeakBpwrCh' + str(i),
                         opt_dict={'yrange': yrange, 'y_major_ticks': ymajor_ticks, 'y_minor_tick_interval': yminor_tick_interval,
-                        'color': color, 'marker': '.', 'line_style': ' ',
-                        'ytitle': f'Angle (deg) @ {freqLabel[i]} Hz'})
-
-        pytplot.tplot_options('title', 'Angle at Peak Power (Threshold: '+str(df['thresholdPercent'].values[0])+'%)')
+                                  'color': color, 'marker': '.', 'line_style': ' ',
+                                  'ytitle': f'Angle (deg) @ {freqLabel[i]} Hz'})
+        pytplot.options('akb_mca_E_axis',
+                        opt_dict={'yrange': [-0.5, 3.5], 'panel_size': 0.5})
+        pytplot.tplot_options('title', 'Angle at Peak Power E:max/min > ' + str(EpwrRatioThreshold) + ', B:max/min > ' + str(BpwrRatioThreshold))
 
     store_mca_high_time_res_data(date=date, datatype='pwr', del_invalid_data=['off', 'bit rate m', 'sms', 'bdr', 'noisy'])
     pytplot.options('akb_mca_Emax_pwr', 'y_major_ticks', [1e0, 1e1, 1e2, 1e3, 1e4])
     pytplot.options('akb_mca_Bmax_pwr', 'y_major_ticks', [1e0, 1e1, 1e2, 1e3, 1e4])
 
-    # Plot the graph
-    pytplot.tlimit([date+' '+startTime, date+' '+endTime])
+    # プロットの表示範囲設定
+    pytplot.tlimit([date + ' ' + startTime, date + ' ' + endTime])
 
-    saveDir = '../plots/peakAngles/'+ date + '_' \
-        + startTime[0:2] + startTime[3:5] + startTime[6:8] + '-' \
-        + endTime[0:2] + endTime[3:5] + endTime[6:8] + '/'
+    # プロットの保存
+    saveDir = '../plots/peakAngles/' + date.replace('-', '') + '_' \
+              + startTime.replace(':', '') + '-' + endTime.replace(':', '') + '_' \
+              + str(EpwrRatioThreshold) + str(BpwrRatioThreshold) + '/'
     os.makedirs(saveDir, exist_ok=True)
     for i in range(16):
-        saveName = 'angleAtPeakPwr'+freqLabel[i]+'Hz'
-        pytplot.tplot(['akb_mca_Emax_pwr', 'AngleAtPeakEpwrCh'+str(i), 'akb_mca_Bmax_pwr', 'AngleAtPeakBpwrCh'+str(i)],
-                    xsize=12, ysize=10,
-                    save_jpeg=saveDir+saveName,
-                    display=False)
+        saveName = 'angleAtPeakPwr' + freqLabel[i] + 'Hz'
+        pytplot.tplot(['akb_mca_Emax_pwr', 'AngleAtPeakEpwrCh' + str(i), 'akb_mca_Bmax_pwr', 'AngleAtPeakBpwrCh' + str(i), 'akb_mca_E_axis'],
+                      xsize=12, ysize=10,
+                      save_jpeg=saveDir + saveName,
+                      display=False)
+
 
 
 def plotAngleHist(date, startTime, endTime):
