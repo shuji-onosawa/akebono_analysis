@@ -18,11 +18,11 @@ def make_wave_mgf_dataset(date: str,
                                  datatype=mca_datatype,
                                  del_invalid_data=del_invalid_data)
     # MCAのデータを取り出す
-    mca_Emax_tvar = pytplot.get_data('akb_mca_Emax_'+mca_datatype)
-    mca_Bmax_tvar = pytplot.get_data('akb_mca_Bmax_'+mca_datatype)
-    mca_epoch = mca_Emax_tvar.times
-    mca_Emax_data = mca_Emax_tvar.y
-    mca_Bmax_data = mca_Bmax_tvar.y
+    mca_epoch = pytplot.data_quants['akb_mca_Emax_'+mca_datatype].coords['time'].values
+    channel = pytplot.data_quants['akb_mca_Emax_'+mca_datatype].coords['spec_bins'].values
+    mca_Emax_data = pytplot.data_quants['akb_mca_Emax_'+mca_datatype].values
+    mca_Bmax_data = pytplot.data_quants['akb_mca_Bmax_'+mca_datatype].values
+    mca_Eaxis_data = pytplot.data_quants['akb_mca_E_axis'].values
 
     if len(mca_epoch) == len(mgf_epoch):
         pass
@@ -32,19 +32,28 @@ def make_wave_mgf_dataset(date: str,
         mca_epoch = mca_epoch[:len(mgf_epoch)]
         mca_Emax_data = mca_Emax_data[:len(mgf_epoch)]
         mca_Bmax_data = mca_Bmax_data[:len(mgf_epoch)]
+        mca_Eaxis_data = mca_Eaxis_data[:len(mgf_epoch)]
     # MCAのepochの長さがMGFのepochの長さより短い場合は、MGFのepochの長さに合わせるために末尾にnanを追加する
     elif len(mca_epoch) < len(mgf_epoch):
         print(len(mca_epoch), len(mgf_epoch))
         mca_epoch = np.append(mca_epoch, np.full(len(mgf_epoch)-len(mca_epoch), np.nan))
-        mca_Emax_data = np.append(mca_Emax_data, np.full(len(mgf_epoch)-len(mca_epoch), np.nan))
+        mca_Emax_data = np.append(mca_Emax_data, np.full((len(mgf_epoch)-len(mca_epoch), 3), np.nan))
         mca_Bmax_data = np.append(mca_Bmax_data, np.full((len(mgf_epoch)-len(mca_epoch), 3), np.nan))
+        mca_Eaxis_data = np.append(mca_Eaxis_data, np.full(len(mgf_epoch)-len(mca_epoch), np.nan))
     # MCAのepoch配列をcoodinateにして、MCAのdatasetを作成する
-    coords = {'Epoch': mgf_epoch, 'channel': mca_Emax_tvar.v}
-    mca_Emax_da = xr.DataArray(mca_Emax_data, coords=coords, dims=('Epoch', 'channel'))
-    mca_Bmax_da = xr.DataArray(mca_Bmax_data, coords=coords, dims=('Epoch', 'channel'))
+    mca_Emax_da = xr.DataArray(mca_Emax_data,
+                               coords={'Epoch': mgf_epoch, 'channel': channel},
+                               dims=('Epoch', 'channel'))
+    mca_Bmax_da = xr.DataArray(mca_Bmax_data,
+                               coords={'Epoch': mgf_epoch, 'channel': channel},
+                               dims=('Epoch', 'channel'))
+    mca_Eaxis_da = xr.DataArray(mca_Eaxis_data.squeeze(),
+                                coords={'Epoch': mgf_epoch},
+                                dims=('Epoch'))
     # MCAのepoch配列をcoodinateにして、MGFのdatasetを作成する
-    mgf_with_angle_dataset['akb_mca_Emax_pwr'] = mca_Emax_da
-    mgf_with_angle_dataset['akb_mca_Bmax_pwr'] = mca_Bmax_da
+    mgf_with_angle_dataset['akb_mca_Emax_'+mca_datatype] = mca_Emax_da
+    mgf_with_angle_dataset['akb_mca_Bmax_'+mca_datatype] = mca_Bmax_da
+    mgf_with_angle_dataset['E_axis'] = mca_Eaxis_da
     wave_mgf_dataset = mgf_with_angle_dataset
     return wave_mgf_dataset
 
