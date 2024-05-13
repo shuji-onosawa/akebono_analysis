@@ -56,6 +56,11 @@ def get_mgf_with_angle_xry(date: str = '1990-2-25'):
 
     # calculate angle between B0 and antennas
     b0Ary = mean_b0_spin_da_replaced.values
+    angleB0ExAry = calc_angle_b0_antenna(b0Ary,
+                                         np.array([np.cos(np.deg2rad(35)),
+                                                   np.sin(np.deg2rad(35)),
+                                                   0]))
+    angleB0ExXry = xr.DataArray(np.rad2deg(angleB0ExAry), dims='Epoch', name='angle_b0_Ex')
     angleB0EyAry = calc_angle_b0_antenna(b0Ary,
                                         np.array([-np.sin(np.deg2rad(35)),
                                                   np.cos(np.deg2rad(35)),
@@ -68,7 +73,7 @@ def get_mgf_with_angle_xry(date: str = '1990-2-25'):
                                            np.array([2**-0.5, -3**-0.5, 6**-0.5]))
     angleB0BloopXry = xr.DataArray(np.rad2deg(angleB0BloopAry), dims='Epoch', name='angle_b0_Bloop')
     # make new dataset from angle_b0_Ey and angle_b0_sBy
-    new_mgf_xry = xr.merge([mean_b0_spin_da_replaced, angleB0EyXry, angleB0sByXry, angleB0BloopXry])
+    new_mgf_xry = xr.merge([mean_b0_spin_da_replaced, angleB0ExXry, angleB0EyXry, angleB0sByXry, angleB0BloopXry])
 
     return new_mgf_xry
 
@@ -85,6 +90,8 @@ def preprocess_mgf_angle(angleAry: np.ndarray):
 
 
 def store_angle_b0(wave_mgf_ds: xr.Dataset):
+    angleB0ExDs = wave_mgf_ds['angle_b0_Ex']
+    angleB0ExAry = angleB0ExDs.values
     angleB0EyDs = wave_mgf_ds['angle_b0_Ey']
     angleB0EyAry = angleB0EyDs.values
     angleB0sByDs = wave_mgf_ds['angle_b0_sBy']
@@ -92,10 +99,14 @@ def store_angle_b0(wave_mgf_ds: xr.Dataset):
     angleB0BloopDs = wave_mgf_ds['angle_b0_Bloop']
     angleB0BloopAry = angleB0BloopDs.values
 
+    angleB0ExFolded = preprocess_mgf_angle(angleB0ExAry)
     angleB0EyFolded = preprocess_mgf_angle(angleB0EyAry)
     angleB0sByFolded = preprocess_mgf_angle(angleB0sByAry)
     angleB0BloopFolded = preprocess_mgf_angle(angleB0BloopAry)
 
+    pytplot.store_data('angle_b0_Ex',
+                          data={'x': angleB0ExDs['Epoch'].data,
+                              'y': angleB0ExFolded})
     pytplot.store_data('angle_b0_Ey',
                        data={'x': angleB0EyDs['Epoch'].data,
                              'y': angleB0EyFolded})
@@ -111,6 +122,8 @@ def store_angle_b0(wave_mgf_ds: xr.Dataset):
     yminor_tick_interval = 10
     opt_dict = {'yrange': yrange, 'y_major_ticks': ymajor_ticks, 'y_minor_tick_interval': yminor_tick_interval,
                 'color': 'k', 'marker': '.', 'line_style': ' '}
+    pytplot.options('angle_b0_Ex',
+                    opt_dict=opt_dict)
     pytplot.options('angle_b0_Ey',
                     opt_dict=opt_dict)
     pytplot.options('angle_b0_sBy',
@@ -118,8 +131,8 @@ def store_angle_b0(wave_mgf_ds: xr.Dataset):
     pytplot.options('angle_b0_Bloop',
                     opt_dict=opt_dict)
     pytplot.timebar(t=90,
-                    varname=['angle_b0_Ey', 'angle_b0_sBy', 'angle_b0_Bloop'],
+                    varname=['angle_b0_Ex', 'angle_b0_Ey', 'angle_b0_sBy', 'angle_b0_Bloop'],
                     databar=True)
     pytplot.store_data('angle_b0_B', data=['angle_b0_Bloop', 'angle_b0_sBy'])
     pytplot.options('angle_b0_B', 'color', ['k', 'r']) # red: sBy, black: Bloop
-    pytplot.options(['angle_b0_Ey', 'angle_b0_B'], 'panel_size', 0.5)
+    pytplot.options(['angle_b0_Ex', 'angle_b0_Ey', 'angle_b0_B'], 'panel_size', 0.5)
