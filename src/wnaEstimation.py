@@ -1,101 +1,95 @@
-# ../execute/pyEmax_Bmax_angle_freq-*_mode-*.csvから(θEmax, θBmax)(理論値)とその時のWNA, 方位角を読みこむ
-# wave_mgf_datasetから1スピンごとの(θEmax, θBmax)(観測値)の範囲を算出
-# 観測値の範囲に理論値が含まれるかどうかを判定
-
 from calc_pwr_matrix_angle_vs_freq import make_wave_mgf_dataset
 import numpy as np
-from utilities import find_zero_cross_idx
+from utilities import find_zero_cross_idx as findZeroCrossIdx
 import csv
 import os
 from plotPeakAngle import plotPeakAngle, combineImages, plotAngleHist
 
-def split_dataset_into_half_spins(date, start_time, end_time):
-    # Convert input times to datetime format
-    start_time = date + 'T' + start_time
-    end_time = date + 'T' + end_time
 
-    # Load data
-    ds = make_wave_mgf_dataset(date=date, mca_datatype='pwr')
-    sub_dataset = ds.sel(Epoch=slice(start_time, end_time))
-
-    angleB0EyAry = sub_dataset['angle_b0_Ey'].values
-
-    # Find half spin index range for E field
-    pos_to_neg_idx, neg_to_pos_idx = find_zero_cross_idx(angleB0EyAry)
-    half_spin_idx_range_list = []
-
-    if pos_to_neg_idx[0] > neg_to_pos_idx[0]:
-        if pos_to_neg_idx[-1] > neg_to_pos_idx[-1]:
-            for i in range(len(neg_to_pos_idx) - 1):
-                half_spin_idx_range_list.append([neg_to_pos_idx[i] + 1, pos_to_neg_idx[i] + 1])
-                half_spin_idx_range_list.append([pos_to_neg_idx[i] + 1, neg_to_pos_idx[i + 1] + 1])
-            half_spin_idx_range_list.append([neg_to_pos_idx[-1] + 1, pos_to_neg_idx[-1] + 1])
-        elif pos_to_neg_idx[-1] < neg_to_pos_idx[-1]:
-            for i in range(len(pos_to_neg_idx)):
-                half_spin_idx_range_list.append([neg_to_pos_idx[i] + 1, pos_to_neg_idx[i] + 1])
-                half_spin_idx_range_list.append([pos_to_neg_idx[i] + 1, neg_to_pos_idx[i + 1] + 1])
-    elif pos_to_neg_idx[0] < neg_to_pos_idx[0]:
-        if pos_to_neg_idx[-1] > neg_to_pos_idx[-1]:
-            for i in range(len(neg_to_pos_idx)):
-                half_spin_idx_range_list.append([pos_to_neg_idx[i] + 1, neg_to_pos_idx[i] + 1])
-                half_spin_idx_range_list.append([neg_to_pos_idx[i] + 1, pos_to_neg_idx[i + 1] + 1])
-        elif pos_to_neg_idx[-1] < neg_to_pos_idx[-1]:
-            for i in range(len(pos_to_neg_idx) - 1):
-                half_spin_idx_range_list.append([pos_to_neg_idx[i] + 1, neg_to_pos_idx[i] + 1])
-                half_spin_idx_range_list.append([neg_to_pos_idx[i] + 1, pos_to_neg_idx[i + 1] + 1])
-            half_spin_idx_range_list.append([pos_to_neg_idx[-1] + 1, neg_to_pos_idx[-1] + 1])
-
-    # Split dataset into half spin
-    half_spin_dataset_list = []
-    epoch = sub_dataset.coords['Epoch'].values
-    for i in range(len(half_spin_idx_range_list)):
-        half_spin_dataset_list.append(sub_dataset.sel(Epoch=slice(epoch[half_spin_idx_range_list[i][0]],
-                                                                  epoch[half_spin_idx_range_list[i][1]-1])))
-    return half_spin_dataset_list
-
-
-def selectSpin(halfSpinDatasetList, thresholdPercent):
+def main(date, startTime, endTime, EpwrRatioThreshold, BpwrRatioThreshold, fold=True, color='k'):
     """
     Args:
-        halfSpinDatasetList (list): halfSpinごとに分割されたxarray.datasetのリスト
-        thresholdPercent (float or int): 閾値(%)
-    Returns:
-        selectedDatasetList (list): 閾値を満たすxarray.datasetのリスト
+        date (str): 日付, yyyy-mm-dd
+        startTime (str): 開始時刻, hh:mm:ss
+        endTime (str): 終了時刻, hh:mm:ss
+        EpwrRatioThreshold (float): 電力比率しきい値
+        BpwrRatioThreshold (float): 磁場電力比率しきい値
+        fold (bool): 角度を0~180度に折り返すか否か
+        color (str): マーカーの色
     """
-    # halfSpinDatasetListに含まれるxarray.datasetをすべて結合したxarray.datasetを作成
-    combinedDataset = halfSpinDatasetList[0]
-    for i in range(1, len(halfSpinDatasetList)):
-        combinedDataset = combinedDataset.combine_first(halfSpinDatasetList[i])
-    # 各チャンネルごとに、最大値を算出。最大値のthesholdPercent%を閾値とする
-    EmaxPwrAry = combinedDataset['akb_mca_Emax_pwr'].max(dim='Epoch').values
-    BmaxPwrAry = combinedDataset['akb_mca_Bmax_pwr'].max(dim='Epoch').values
-    thresholdE = EmaxPwrAry * thresholdPercent / 100
-    thresholdB = BmaxPwrAry * thresholdPercent / 100
+    print('Processing date: {}, startTime: {}, endTime: {}'.format(date, startTime, endTime))
+    #データを格納する辞書を作成
+    angleAtPeakPwrDict = {
+        "date": date,
+        "startTime": startTime,
+        "endTime": endTime}
+    for ch in range(16):  # 16ch
+        angleAtPeakPwrDict['timeAtPeakEpwrCh{}'.format(ch)] = []
+        angleAtPeakPwrDict['angleAtPeakEpwrCh{}'.format(ch)] = []
+        angleAtPeakPwrDict['timeAtPeakBpwrCh{}'.format(ch)] = []
+        angleAtPeakPwrDict['angleAtPeakBpwrCh{}'.format(ch)] = []
 
-    selectedDatasetDict = {f"Ch{ch}EList": [] for ch in range(16)}
-    selectedDatasetDict.update({f"Ch{ch}BList": [] for ch in range(16)})
+    # データの読み込み
+    ds = make_wave_mgf_dataset(date=date, mca_datatype='pwr')
+    subDataset = ds.sel(Epoch=slice(date+'T'+startTime, date+'T'+endTime))
 
-    for i in range(len(halfSpinDatasetList)):
-        for ch in range(16):
-            # Emax
-            EmaxPwr = halfSpinDatasetList[i]['akb_mca_Emax_pwr'].values[:, ch]
-            # EmaxPwrの長さが0の場合は、このhalfSpinDatasetList[i]はスキップする
-            if len(EmaxPwr) == 0:
-                continue
-            if np.nanmax(EmaxPwr) >= thresholdE[ch]:
-                selectedDatasetDict[f"Ch{ch}EList"].append(halfSpinDatasetList[i])
-            # Bmax
-            BmaxPwr = halfSpinDatasetList[i]['akb_mca_Bmax_pwr'].values[:, ch]
-            if np.nanmax(BmaxPwr) >= thresholdB[ch]:
-                selectedDatasetDict[f"Ch{ch}BList"].append(halfSpinDatasetList[i])
+    # 1スピンごとにデータを分割
+    halfSpinDatasetList = splitDatasetIntoHalfSpins(subDataset)
 
-    # thresholdPercentの値を追加
-    selectedDatasetDict['thresholdPercent'] = thresholdPercent
-    return selectedDatasetDict
+    # 各チャンネルの最大値の角度、その時の時刻を取得
+    angleAtPeakPwrDict = makePeakAnglePowerTimeSeries(angleAtPeakPwrDict, halfSpinDatasetList,
+                                                      EpwrRatioThreshold, BpwrRatioThreshold)
+
+    # csvファイルに保存
+    saveAngleAtPeakPwr(angleAtPeakPwrDict)
+
+    # プロット
+    print('Plotting...')
+    plotPeakAngle(date, startTime, endTime,
+                  EpwrRatioThreshold, BpwrRatioThreshold, fold, color)
+
+
+def splitDatasetIntoHalfSpins(dataSet):
+    angleB0EyAry = dataSet['angle_b0_Ey'].values
+
+    # Find half spin index range for E field
+    posToNegIdx, negToPosIdx = findZeroCrossIdx(angleB0EyAry)
+    halfSpinIdxRangeList = []
+
+    if posToNegIdx[0] > negToPosIdx[0]:
+        if posToNegIdx[-1] > negToPosIdx[-1]:
+            for i in range(len(negToPosIdx) - 1):
+                halfSpinIdxRangeList.append([negToPosIdx[i] + 1, posToNegIdx[i] + 1])
+                halfSpinIdxRangeList.append([posToNegIdx[i] + 1, negToPosIdx[i + 1] + 1])
+            halfSpinIdxRangeList.append([negToPosIdx[-1] + 1, posToNegIdx[-1] + 1])
+        elif posToNegIdx[-1] < negToPosIdx[-1]:
+            for i in range(len(posToNegIdx)):
+                halfSpinIdxRangeList.append([negToPosIdx[i] + 1, posToNegIdx[i] + 1])
+                halfSpinIdxRangeList.append([posToNegIdx[i] + 1, negToPosIdx[i + 1] + 1])
+    elif posToNegIdx[0] < negToPosIdx[0]:
+        if posToNegIdx[-1] > negToPosIdx[-1]:
+            for i in range(len(negToPosIdx)):
+                halfSpinIdxRangeList.append([posToNegIdx[i] + 1, negToPosIdx[i] + 1])
+                halfSpinIdxRangeList.append([negToPosIdx[i] + 1, posToNegIdx[i + 1] + 1])
+        elif posToNegIdx[-1] < negToPosIdx[-1]:
+            for i in range(len(posToNegIdx) - 1):
+                halfSpinIdxRangeList.append([posToNegIdx[i] + 1, negToPosIdx[i] + 1])
+                halfSpinIdxRangeList.append([negToPosIdx[i] + 1, posToNegIdx[i + 1] + 1])
+            halfSpinIdxRangeList.append([posToNegIdx[-1] + 1, negToPosIdx[-1] + 1])
+
+    # Split dataset into half spin
+    halfSpinDatasetList = []
+    epoch = dataSet.coords['Epoch'].values
+    for i in range(len(halfSpinIdxRangeList)):
+        halfSpinDatasetList.append(dataSet.sel(Epoch=slice(epoch[halfSpinIdxRangeList[i][0]],
+                                                                  epoch[halfSpinIdxRangeList[i][1]-1])))
+    return halfSpinDatasetList
 
 
 def getAngleAtPeakPwr(timeAry, angleAry, pwrAry):
     """
+    pwrが最大値をとる時の角度と時刻を取得する。
+    pwrが最大となる角度、時刻が複数ある場合は、すべての角度、時刻を取得する。
     Args:
         timeAry (1D ndarray): 時刻の配列
         angleAry (1D ndarray): 角度の配列
@@ -119,74 +113,130 @@ def getAngleAtPeakPwr(timeAry, angleAry, pwrAry):
     return angleAtPeakPwr, timeAtPeakPwr
 
 
-def calcAngleAtPeakPwr(selectedDatasetDict):
+def makePeakAnglePowerTimeSeries(angleAtPeakPwrDict, halfSpinDatasetList, EpwrRatioThreshold, BpwrRatioThreshold):
     """
     Args:
-        selectedDatasetDict (dict): 閾値を満たすxarray.datasetのリスト
-
+        halfSpinDatasetList (list): halfSpinごとに分割されたxarray.datasetのリスト
+        EpwrRatioThreshold (float): 1スピン内での電場最大強度と最小強度の比の閾値
+        BpwrRatioThreshold (float): 1スピン内での磁場最大強度と最小強度の比の閾値
     Returns:
         angleAtPeakPwrDict (dict): halfSpinごと最初の時刻、各チャンネルの最大値の角度の辞書
     """
-    angleAtPeakPwrDict = {}
-
+    # angleAtPeakPwrDictにEpwrRatioThreshold, BpwrRatioThresholdを追加
+    angleAtPeakPwrDict['EpwrRatioThreshold'] = EpwrRatioThreshold
+    angleAtPeakPwrDict['BpwrRatioThreshold'] = BpwrRatioThreshold
+    # チャンネルごとに最大値の角度、時刻を取得
     for ch in range(16):
         angleAtPeakEpwr = []
         timeAtPeakEpwr = []
         angleAtPeakBpwr = []
         timeAtPeakBpwr = []
+        
+        # Emax
+        for i in range(len(halfSpinDatasetList)):
+            timeAry = halfSpinDatasetList[i]['Epoch'].values
+            angleExAry = halfSpinDatasetList[i]['angle_b0_Ex'].values
+            angleEyAry = halfSpinDatasetList[i]['angle_b0_Ey'].values
+            pwrAry = halfSpinDatasetList[i]['akb_mca_Emax_pwr'].values[:, ch]
+            EaxisAry = halfSpinDatasetList[i]['E_axis'].values
+            # １スピン中の電場強度の最大値と最小値の比がEpwrRatioThreshold未満であれば、このhalfspinDatasetList[i]はスキップする
+            EmaxInSpin = np.nanmax(pwrAry)
+            EminInSpin = np.nanmin(pwrAry)
+            if EmaxInSpin / EminInSpin < EpwrRatioThreshold:
+                continue
+            # EmaxPwrの長さが0の場合は、このhalfSpinDatasetList[i]はスキップする
+            if len(pwrAry) == 0:
+                continue
+            # E_axisすべて同じ値でない場合は、このhalfSpinDatasetList[i]はスキップする
+            if len(set(EaxisAry)) != 1: # set()で重複を削除. 重複を削除した配列の長さが１のとき、E_axisはすべて同じ値
+                continue
+            # E_axisが0, 3を含む場合は、このhalfSpinDatasetList[i]はスキップする
+            if 0 in EaxisAry or 3 in EaxisAry:
+                continue
+            
+            # 最大値の角度、時刻を取得
+            E_axis_flag = EaxisAry[0]
+            if E_axis_flag == 1:
+                angleAtPeakEpwrList, timeAtPeakEpwrList = getAngleAtPeakPwr(timeAry, angleExAry, pwrAry)
+            elif E_axis_flag == 2:
+                angleAtPeakEpwrList, timeAtPeakEpwrList = getAngleAtPeakPwr(timeAry, angleEyAry, pwrAry)
 
-        for i in range(len(selectedDatasetDict[f"Ch{ch}EList"])):
-            # Emax
-            timeAry = selectedDatasetDict[f"Ch{ch}EList"][i]['Epoch'].values
-            angleAry = selectedDatasetDict[f"Ch{ch}EList"][i]['angle_b0_Ey'].values
-            pwrAry = selectedDatasetDict[f"Ch{ch}EList"][i]['akb_mca_Emax_pwr'].values[:, ch]
-            angleAtPeakEpwrList, timeAtPeakEpwrList = getAngleAtPeakPwr(timeAry, angleAry, pwrAry)
             angleAtPeakEpwr += angleAtPeakEpwrList
             timeAtPeakEpwr += timeAtPeakEpwrList
+        # 最大値の角度、時刻を辞書に追加
         angleAtPeakPwrDict['timeAtPeakEpwrCh{}'.format(ch)] = timeAtPeakEpwr
         angleAtPeakPwrDict['angleAtPeakEpwrCh{}'.format(ch)] = angleAtPeakEpwr
-
-        for j in range(len(selectedDatasetDict[f"Ch{ch}BList"])):
-            # Bmax
-            timeAry = selectedDatasetDict[f"Ch{ch}BList"][j]['Epoch'].values
+        
+        # Bmax
+        for j in range(len(halfSpinDatasetList)):
+            timeAry = halfSpinDatasetList[j]['Epoch'].values
             if ch < 10:
-                angleAry = selectedDatasetDict[f"Ch{ch}BList"][j]['angle_b0_sBy'].values
+                angleAry = halfSpinDatasetList[j]['angle_b0_sBy'].values
             else:
-                angleAry = selectedDatasetDict[f"Ch{ch}BList"][j]['angle_b0_Bloop'].values
-            pwrAry = selectedDatasetDict[f"Ch{ch}BList"][j]['akb_mca_Bmax_pwr'].values[:, ch]
+                angleAry = halfSpinDatasetList[j]['angle_b0_Bloop'].values
+            pwrAry = halfSpinDatasetList[j]['akb_mca_Bmax_pwr'].values[:, ch]
+            # １スピン中の磁場強度の最大値と最小値の比がBpwrRatioThreshold未満であれば、このhalfspinDatasetList[j]はスキップする
+            BmaxInSpin = np.nanmax(pwrAry)
+            BminInSpin = np.nanmin(pwrAry)
+            if BmaxInSpin / BminInSpin < BpwrRatioThreshold:
+                continue
+            # BmaxPwrの長さが0の場合は、このhalfSpinDatasetList[j]はスキップする
+            if len(pwrAry) == 0:
+                continue
+
+            # 最大値の角度、時刻を取得
             angleAtPeakBpwrList, timeAtPeakBpwrList = getAngleAtPeakPwr(timeAry, angleAry, pwrAry)
+            
             angleAtPeakBpwr += angleAtPeakBpwrList
             timeAtPeakBpwr += timeAtPeakBpwrList
+        # 最大値の角度、時刻を辞書に追加
         angleAtPeakPwrDict['timeAtPeakBpwrCh{}'.format(ch)] = timeAtPeakBpwr
         angleAtPeakPwrDict['angleAtPeakBpwrCh{}'.format(ch)] = angleAtPeakBpwr
 
     # 時刻の配列の長さを揃えるために、最大長の配列に合わせて、nanを追加する
+    # 最大の長さを求める. 'date', 'startTime', 'endTime', 'EpwrRatioThreshold', 'BpwrRatioThreshold'は除く
     maxLen = 0
     for key in angleAtPeakPwrDict.keys():
-        if len(angleAtPeakPwrDict[key]) > maxLen:
-            maxLen = len(angleAtPeakPwrDict[key])
-    for key in angleAtPeakPwrDict.keys():
-        if len(angleAtPeakPwrDict[key]) < maxLen:
-            angleAtPeakPwrDict[key] += [np.nan] * (maxLen - len(angleAtPeakPwrDict[key]))
+        if key not in ['date', 'startTime', 'endTime', 'EpwrRatioThreshold', 'BpwrRatioThreshold']:
+            if len(angleAtPeakPwrDict[key]) > maxLen:
+                maxLen = len(angleAtPeakPwrDict[key])
 
-    # thresholdPercentの値を追加
-    angleAtPeakPwrDict['thresholdPercent'] = selectedDatasetDict['thresholdPercent'] * np.ones(maxLen)
+    # 最大の長さに合わせる
+    for key in angleAtPeakPwrDict.keys():
+        if key not in ['date', 'startTime', 'endTime', 'EpwrRatioThreshold', 'BpwrRatioThreshold']:
+            if len(angleAtPeakPwrDict[key]) < maxLen:
+                angleAtPeakPwrDict[key] += [np.nan] * (maxLen - len(angleAtPeakPwrDict[key]))
 
     return angleAtPeakPwrDict
 
 
-def saveAngleAtPeakPwr(angleAtPeakPwrDict, date, startTime, endTime):
+def saveAngleAtPeakPwr(angleAtPeakPwrDict):
     """
+    angleAtPeakPwrDictをcsvファイルに保存する.
+    csvファイルの名前は、yyyymmdd_hhmmss-hhmmss_EpwrRatioThreshold-BpwrRatioThreshold.csv
     Args:
         angleAtPeakPwrDict (dict): halfSpinごと最初の時刻、各チャンネルの最大値の角度の辞書
-        date (str): 日付, yyyy-mm-dd
-        startTime (str): 開始時刻, hh:mm:ss
-        endTime (str): 終了時刻, hh:mm:ss
     """
-    saveDir = '../execute/wnaEstimation/'+date+'_'+startTime[0:2]+startTime[3:5]+startTime[6:8]+'-'+endTime[0:2]+endTime[3:5]+endTime[6:8]+'/'
-    saveName = 'peakAngleObs.csv'
+    # ファイル名を作成
+    date = angleAtPeakPwrDict['date'].replace('-', '')
+    startTime = angleAtPeakPwrDict['startTime'].replace(':', '')
+    endTime = angleAtPeakPwrDict['endTime'].replace(':', '')
+    EpwrRatioThreshold = angleAtPeakPwrDict['EpwrRatioThreshold']
+    BpwrRatioThreshold = angleAtPeakPwrDict['BpwrRatioThreshold']
+
+    saveDir = '../execute/peakAngleObs/'
+    saveName = date+'_'+startTime+'-'+endTime+'_'+str(EpwrRatioThreshold)+'-'+str(BpwrRatioThreshold)+'.csv'
+    
+    # angleAtPeakPwrDictからdate, startTime, endTime, EpwrRatioThreshold, BpwrRatioThresholdを削除
+    del angleAtPeakPwrDict['date']
+    del angleAtPeakPwrDict['startTime']
+    del angleAtPeakPwrDict['endTime']
+    del angleAtPeakPwrDict['EpwrRatioThreshold']
+    del angleAtPeakPwrDict['BpwrRatioThreshold']
+
+    # csvファイルに保存
     os.makedirs(saveDir, exist_ok=True)
-    with open(saveDir+saveName, 'w') as f:
+    with open(saveDir+saveName, mode='w') as f:
         writer = csv.writer(f)
         # dictionary の key を header として書き出す
         writer.writerow(angleAtPeakPwrDict.keys())
@@ -352,60 +402,11 @@ def saveWNAEstimationByChAll(wnaDictByChAll):
         writer.writerows(zip(*wnaDictByChAll.values()))
 
 
-
-def main(date, startTime, endTime):
-    print('Split dataset into half spins...')
-    halfSpinDatasetList = split_dataset_into_half_spins(date, startTime, endTime)
-    print('Select spin...')
-    selectedSpinDict = selectSpin(halfSpinDatasetList, 0)
-    print('Calculate angle at peak power...')
-    angleAtPeakPwrDict = calcAngleAtPeakPwr(selectedSpinDict)
-    print('Save angle at peak power...')
-    saveAngleAtPeakPwr(angleAtPeakPwrDict, date, startTime, endTime)
-    print("Plotting angle at peak power...")
-    plotPeakAngle(date, startTime, endTime, fold=True)
-    print('Plot histogram...')
-    plotAngleHist(date, startTime, endTime)
-
-dateList = ['1990-02-11', '1990-03-06', '1990-02-17', '1990-02-25', '1990-02-25', '1990-03-02']
-startTimeList = ['18:05:00', '14:05:00', '03:45:00', '12:22:00', '15:49:00', '14:53:00']
-endTimeList = ['18:10:00', '14:15:00', '03:50:00', '12:27:00', '15:54:00', '14:58:00']
+dateList = ['1990-02-11', '1990-02-17', '1990-02-25', '1990-02-25']
+startTimeList = ['18:05:00', '03:45:00', '12:22:00', '15:49:00']
+endTimeList = ['18:10:00', '03:50:00', '12:27:00', '15:54:00']
 
 
 for date, startTime, endTime in zip(dateList, startTimeList, endTimeList):
-    main(date, startTime, endTime)
+    main(date, startTime, endTime, 5.0, 5.0, fold=True, color='k')
 
-'''
-    print("Plotting angle at peak power...")
-    plotPeakAngle(date, startTime, endTime, fold=True)
-    plotPeakAngle(date, startTime, endTime, fold=False)
-'''
-'''
-print('Split dataset into half spins...')
-halfSpinDatasetList = split_dataset_into_half_spins(date, startTime, endTime)
-print('Select spin...')
-selectedSpinDict = selectSpin(halfSpinDatasetList, thresholdPercent)
-print('Calculate angle at peak power...')
-angleAtPeakPwrDict = calcAngleAtPeakPwr(selectedSpinDict)
-print('Save angle at peak power...')
-saveAngleAtPeakPwr(angleAtPeakPwrDict)
-print('Plot histogram...')
-plotAngleHist(date, startTime, endTime)
-
-
-print("Plotting angle at peak power...")
-plotPeakAngle(date, startTime, endTime, fold=True, color='r')
-plotPeakAngle(date, startTime, endTime, fold=False, color='r')
-
-freqLabel = ['3.16', '5.62', '10', '17.8',
-             '31.6', '56.2', '100', '178',
-             '316', '562', '1000', '1780',
-             '3160', '5620', '10000', '17800']
-saveFolder = '../plots/peakAngles/'+ date + '_' \
-        + startTime[0:2] + startTime[3:5] + startTime[6:8] + '-' \
-        + endTime[0:2] + endTime[3:5] + endTime[6:8] + '/'
-for freq in freqLabel:
-    combineImages(saveFolder+'angleAtPeakPwr'+freq+'Hz_threshold0.0folded.jpeg',
-                  saveFolder+'angleAtPeakPwr'+freq+'Hz_threshold'+str(float(thresholdPercent))+'folded.jpeg',
-                  saveFolder+'angleAtPeakPwr'+freq+'Hz_threshold'+str(thresholdPercent)+'_combined.png')
-                  '''
