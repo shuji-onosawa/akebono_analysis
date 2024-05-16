@@ -133,6 +133,6 @@ def store_angle_b0(wave_mgf_ds: xr.Dataset):
     pytplot.timebar(t=90,
                     varname=['angle_b0_Ex', 'angle_b0_Ey', 'angle_b0_sBy', 'angle_b0_Bloop'],
                     databar=True)
-    pytplot.store_data('angle_b0_B', data=['angle_b0_Bloop', 'angle_b0_sBy'])
     pytplot.options('angle_b0_B', 'color', ['k', 'r']) # red: sBy, black: Bloop
-    pytplot.options(['angle_b0_Ex', 'angle_b0_Ey', 'angle_b0_B'], 'panel_size', 0.5)
+    pytplot.options(['angle_b0_Ex', 'angle_b0_Ey', 'angle_b0_Bloop', 'angle_b0_sBy'], 'panel_size', 0.5)
+    pytplot.store_data('angle_b0_B', data=['angle_b0_Bloop', 'angle_b0_sBy'])

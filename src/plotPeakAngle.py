@@ -68,13 +68,13 @@ def plotPeakAngle(date, startTime, endTime, EpwrRatioThreshold, BpwrRatioThresho
                         opt_dict={'yrange': yrange, 'y_major_ticks': ymajor_ticks, 'y_minor_tick_interval': yminor_tick_interval,
                                   'color': color, 'marker': '.', 'line_style': ' ',
                                   'ytitle': f'Angle (deg) @ {freqLabel[i]} Hz'})
-        pytplot.options('akb_mca_E_axis',
-                        opt_dict={'yrange': [-0.5, 3.5], 'panel_size': 0.5})
         pytplot.tplot_options('title', 'Angle at Peak Power E:max/min > ' + str(EpwrRatioThreshold) + ', B:max/min > ' + str(BpwrRatioThreshold))
 
     store_mca_high_time_res_data(date=date, datatype='pwr', del_invalid_data=['off', 'bit rate m', 'sms', 'bdr', 'noisy'])
     pytplot.options('akb_mca_Emax_pwr', 'y_major_ticks', [1e0, 1e1, 1e2, 1e3, 1e4])
     pytplot.options('akb_mca_Bmax_pwr', 'y_major_ticks', [1e0, 1e1, 1e2, 1e3, 1e4])
+    pytplot.options('akb_mca_E_axis',
+                        opt_dict={'yrange': [-0.5, 3.5], 'panel_size': 0.5})
 
     # プロットの表示範囲設定
     pytplot.tlimit([date + ' ' + startTime, date + ' ' + endTime])
@@ -87,7 +87,7 @@ def plotPeakAngle(date, startTime, endTime, EpwrRatioThreshold, BpwrRatioThresho
     for i in range(16):
         saveName = 'angleAtPeakPwr' + freqLabel[i] + 'Hz'
         pytplot.tplot(['akb_mca_Emax_pwr', 'AngleAtPeakEpwrCh' + str(i), 'akb_mca_Bmax_pwr', 'AngleAtPeakBpwrCh' + str(i), 'akb_mca_E_axis'],
-                      xsize=12, ysize=10,
+                      xsize=10, ysize=10,
                       save_jpeg=saveDir + saveName,
                       display=False)
 
